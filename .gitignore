@@ -1,0 +1,4 @@
+# .gitignore
+
+.env
+service-account.json

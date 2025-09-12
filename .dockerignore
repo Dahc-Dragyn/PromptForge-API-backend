@@ -1,0 +1,23 @@
+# Ignore the Python virtual environment
+.venv
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# Ignore Git, Docker, and other meta-files
+.git
+.gitignore
+.dockerignore
+Dockerfile
+
+# VERY IMPORTANT: Ignore secrets and environment files
+.env
+service-account.json
+.gcloudignore
+
+# Ignore test scripts
+test_api.py
+cleanup_db.py
+seed_db.py
+test.py
