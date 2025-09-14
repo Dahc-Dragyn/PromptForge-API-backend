@@ -44,6 +44,8 @@ class PromptExecuteRequest(BaseModel):
 
 class PromptExecuteResponse(BaseModel):
     generated_text: str
+    input_token_count: Optional[int] = None
+    output_token_count: Optional[int] = None
 
 # --- APE Schemas ---
 class APEExample(BaseModel):
@@ -64,10 +66,12 @@ class DiagnoseRequest(BaseModel):
     prompt_text: str = Field(..., example="Make a story.")
 
 class ScoreCriteria(BaseModel):
-    clarity: float = Field(..., ge=0, le=10)
-    specificity: float = Field(..., ge=0, le=10)
-    context: float = Field(..., ge=0, le=10)
-    constraints: float = Field(..., ge=0, le=10)
+    # --- MODIFIED BLOCK ---
+    # The criteria are now booleans, reflecting the LLM's analysis, not its score.
+    clarity: bool
+    specificity: bool
+    context: bool
+    constraints: bool
 
 class DiagnoseResponse(BaseModel):
     overall_score: float = Field(..., ge=0, le=10)
@@ -135,13 +139,14 @@ class PromptComposeResponse(BaseModel):
 # --- Sandbox & Benchmark Schemas ---
 class BenchmarkRequest(BaseModel):
     prompt_text: str = Field(..., example="Write a short story about a robot who discovers music.")
-    models: List[str] = Field(..., example=["gemini-2.5-flash-lite", "gpt-4.1-nano"])
+    models: List[str] = Field(..., example=["gemini-2.5-flash-lite", "gpt-4o-mini"])
 
 class BenchmarkResult(BaseModel):
     model_name: str
     generated_text: str
     latency_ms: float
-    token_count: Optional[int] = None
+    input_token_count: Optional[int] = None
+    output_token_count: Optional[int] = None
 
 class BenchmarkResponse(BaseModel):
     results: List[BenchmarkResult]
@@ -159,11 +164,11 @@ class SandboxResult(BaseModel):
     prompt_id: str
     generated_text: str
     latency_ms: float
+    input_token_count: Optional[int] = None
+    output_token_count: Optional[int] = None
 
 class SandboxResponse(BaseModel):
     results: List[SandboxResult]
-
-# In app/schemas/prompt.py
 
 class RecommendRequest(BaseModel):
     """The request body for the /templates/recommend endpoint."""
@@ -177,3 +182,15 @@ class RecommendedTemplate(BaseModel):
 class RecommendResponse(BaseModel):
     """The response from the /templates/recommend endpoint."""
     recommendations: List[RecommendedTemplate]
+
+# --- Metrics Schemas ---
+class CostCalculationRequest(BaseModel):
+    model_name: str = Field(..., example="gemini-2.5-flash-lite")
+    input_token_count: int = Field(..., example=1000)
+    output_token_count: int = Field(..., example=500)
+
+class CostCalculationResponse(BaseModel):
+    model_name: str
+    input_token_count: int
+    output_token_count: int
+    estimated_cost_usd: float

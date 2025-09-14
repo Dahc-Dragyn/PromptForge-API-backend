@@ -19,7 +19,7 @@ from app.schemas.prompt import (
     DiagnoseResponse,
     BreakdownRequest,
     BreakdownResponse,
-    PromptTemplate, 
+    PromptTemplate,
     PromptTemplateCreate,
     PromptComposeRequest,
     PromptComposeResponse
@@ -94,10 +94,14 @@ async def create_new_version_for_prompt(prompt_id: str, version_data: PromptVers
 @router.post("/execute", response_model=PromptExecuteResponse, tags=["Execution"])
 async def execute_prompt_with_llm(request: PromptExecuteRequest):
     result = await llm_service.execute_single_model_benchmark(
-        model_name="gemini-2.5-flash-lite",
+        model_name="gemini-2.5-flash-lite", # <-- CORRECTED
         prompt_text=request.prompt_text
     )
-    return PromptExecuteResponse(generated_text=result.generated_text)
+    return PromptExecuteResponse(
+        generated_text=result.generated_text,
+        input_token_count=result.input_token_count,
+        output_token_count=result.output_token_count
+    )
 
 
 @router.post("/optimize", response_model=APEOptimizeResponse, tags=["APE"])

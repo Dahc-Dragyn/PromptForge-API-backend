@@ -4,14 +4,16 @@ from google.cloud.firestore_v1.async_transaction import AsyncTransaction
 from google.cloud.firestore_v1.base_query import FieldFilter
 from google.cloud import firestore
 from typing import Optional
+import traceback # Import traceback to print detailed errors
 
 from app.core.db import db
 from app.schemas.prompt import (
-    PromptCreate, 
-    PromptUpdate, 
-    PromptVersionCreate, 
+    PromptCreate,
+    PromptUpdate,
+    PromptVersionCreate,
     PromptTemplateCreate,
-    PromptComposeRequest
+    PromptComposeRequest,
+    Prompt # Import the main Prompt schema for validation
 )
 
 # --- Constants ---
@@ -44,13 +46,26 @@ async def create_prompt(prompt_data: PromptCreate) -> dict:
     return {"id": prompt_ref.id, **prompt_doc_data}
 
 async def list_prompts() -> list[dict]:
-    """Retrieves all prompt documents."""
+    """
+    Retrieves all prompt documents, safely skipping any malformed ones.
+    """
     prompts_list = []
     stream = db.collection(PROMPTS_COLLECTION).stream()
     async for doc in stream:
-        prompt_data = doc.to_dict()
-        prompt_data["id"] = doc.id
-        prompts_list.append(prompt_data)
+        try:
+            prompt_data = doc.to_dict()
+            prompt_data["id"] = doc.id
+            # Validate data against the Pydantic model before adding it
+            Prompt.model_validate(prompt_data)
+            prompts_list.append(prompt_data)
+        except Exception as e:
+            # If validation fails or any other error occurs, log it and continue
+            print(f"--- WARNING: Skipping malformed document in 'prompts' collection ---")
+            print(f"Document ID: {doc.id}")
+            print(f"Document Data: {doc.to_dict()}")
+            print(f"Error: {e}")
+            print("-" * 60)
+            
     return prompts_list
 
 async def get_prompt_by_id(prompt_id: str) -> dict | None:
@@ -119,7 +134,7 @@ async def create_template(template_data: PromptTemplateCreate) -> dict:
     existing_template_query = db.collection(PROMPT_TEMPLATES_COLLECTION).where(
         filter=FieldFilter("name", "==", template_data.name)
     ).limit(1)
-    
+
     docs = [doc async for doc in existing_template_query.stream()]
     if docs:
         raise ValueError("A template with this name already exists.")
@@ -127,7 +142,7 @@ async def create_template(template_data: PromptTemplateCreate) -> dict:
     data = template_data.model_dump()
     data["created_at"] = datetime.now(timezone.utc)
     data["version"] = 1
-    
+
     update_time, doc_ref = await db.collection(PROMPT_TEMPLATES_COLLECTION).add(data)
     return {"id": doc_ref.id, **data}
 
@@ -138,13 +153,13 @@ async def list_templates(tag: Optional[str] = None) -> list[dict]:
 
     if tag:
         query = query.where(filter=FieldFilter("tags", "array_contains", tag))
-    
+
     stream = query.stream()
     async for doc in stream:
         template_data = doc.to_dict()
         template_data["id"] = doc.id
         templates_list.append(template_data)
-        
+
     return templates_list
 
 async def compose_prompt_from_tags(request: PromptComposeRequest) -> dict:
@@ -157,7 +172,7 @@ async def compose_prompt_from_tags(request: PromptComposeRequest) -> dict:
         "domain": request.domain,
         "language": request.language
     }
-    
+
     prompt_pieces = []
     source_templates = []
     used_template_ids = set()
@@ -167,7 +182,7 @@ async def compose_prompt_from_tags(request: PromptComposeRequest) -> dict:
             query = db.collection(PROMPT_TEMPLATES_COLLECTION).where(
                 filter=FieldFilter("tags", "array_contains", tag_name)
             ).limit(5)
-            
+
             stream = query.stream()
             async for doc in stream:
                 if doc.id not in used_template_ids:
@@ -175,10 +190,10 @@ async def compose_prompt_from_tags(request: PromptComposeRequest) -> dict:
                     prompt_pieces.append(template_data.get("content", ""))
                     source_templates.append(template_data.get("name", "Unknown"))
                     used_template_ids.add(doc.id)
-                    break 
+                    break
 
     composed_prompt = "\n\n".join(prompt_pieces)
-    
+
     return {
         "composed_prompt": composed_prompt,
         "source_templates": source_templates
@@ -191,13 +206,13 @@ async def list_templates_by_tags(tags: list[str]) -> list[dict]:
     query = db.collection(PROMPT_TEMPLATES_COLLECTION).where(
         filter=FieldFilter("tags", "array_contains_any", tags)
     )
-    
+
     stream = query.stream()
     async for doc in stream:
         template_data = doc.to_dict()
         template_data["id"] = doc.id
         templates_list.append(template_data)
-        
+
     return templates_list
 
 async def delete_template_by_id(template_id: str):

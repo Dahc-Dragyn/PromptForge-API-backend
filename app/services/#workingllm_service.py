@@ -152,6 +152,7 @@ Analyze this prompt:
         
         final_score = round(max(0.0, score), 2)
 
+        # Prepare the list of key issues based on the rubric
         key_issues = [k for k, v in llm_result.items() if k in required_keys[:5] and not v]
 
         return {

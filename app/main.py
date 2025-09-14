@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import prompts, templates, sandbox 
+from app.routers import prompts, templates, sandbox, metrics # 1. Import metrics
 
 # Initialize the FastAPI app
 app = FastAPI(
@@ -31,8 +31,9 @@ app.add_middleware(
 
 # --- API Endpoints ---
 app.include_router(prompts.router)
-app.include_router(templates.router) 
+app.include_router(templates.router)
 app.include_router(sandbox.router)
+app.include_router(metrics.router) 
 
 @app.get("/", tags=["Health Check"])
 def read_root():
