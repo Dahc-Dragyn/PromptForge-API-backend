@@ -3,11 +3,13 @@ import json
 import sys
 import math
 import time
+import os
 
 BASE_URL = "http://127.0.0.1:8000"
 HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
 
-def run_test(name, method, url, payload=None):
+# --- MODIFIED BLOCK: Updated run_test helper ---
+def run_test(name, method, url, payload=None, expected_status=None):
     """Helper function to run a test and print the results."""
     print(f"--- Testing: {name} ---")
     try:
@@ -23,23 +25,34 @@ def run_test(name, method, url, payload=None):
             raise ValueError(f"Unsupported method: {method}")
 
         print(f"Status Code: {response.status_code}")
-        response.raise_for_status()
+        
+        # If an expected status is provided, check against it
+        if expected_status:
+            assert response.status_code == expected_status, f"Expected status {expected_status}, but got {response.status_code}"
+        # Otherwise, use default success codes
+        else:
+            response.raise_for_status()
 
         if response.status_code != 204:
-            print("Response JSON:")
             response_json = response.json()
+            print("Response JSON:")
             print(json.dumps(response_json, indent=2))
             return response_json
         else:
             print("Success (No Content)")
             return None
+            
     except requests.exceptions.RequestException as e:
         print(f"!!! TEST FAILED: {name} - {e} !!!")
         if 'response' in locals() and response.text:
             print(f"Error Body: {response.text}")
-        sys.exit(1) # Exit script on failure
+        sys.exit(1)
+    except AssertionError as e:
+        print(f"!!! ASSERTION FAILED: {e} !!!")
+        sys.exit(1)
     finally:
         print("-" * 30 + "\n")
+
 
 def test_prompt_lifecycle():
     print("\n" + "="*10 + " TESTING PROMPT LIFECYCLE " + "="*10 + "\n")
@@ -66,7 +79,7 @@ def test_template_library():
 
 def test_ai_features():
     print("\n" + "="*10 + " TESTING AI FEATURES " + "="*10 + "\n")
-    execute_response = run_test("Execute Prompt", "POST", f"{BASE_URL}/prompts/execute", payload={"prompt_text": "Summarize Hamlet in one sentence."})
+    execute_response = run_test("Execute Prompt (Platform Key)", "POST", f"{BASE_URL}/prompts/execute", payload={"prompt_text": "Summarize Hamlet in one sentence."})
     if execute_response:
         assert "input_token_count" in execute_response and execute_response["input_token_count"] > 0
         assert "output_token_count" in execute_response and execute_response["output_token_count"] > 0
@@ -82,7 +95,6 @@ def test_ai_features():
             print(f"   -> Verified I/O tokens for {result['model_name']}: {result['input_token_count']}/{result['output_token_count']}")
         print("   ✅ Input/Output token count verification successful for Benchmark.")
 
-    # --- MODIFIED BLOCK ---
     diagnose_response = run_test("Diagnose Prompt", "POST", f"{BASE_URL}/prompts/diagnose", payload={"prompt_text": "write code"})
     if diagnose_response:
         assert "overall_score" in diagnose_response and isinstance(diagnose_response["overall_score"], (int, float))
@@ -102,8 +114,62 @@ def test_ai_features():
             print(f"   -> Verified I/O tokens for {result['prompt_id']}: {result['input_token_count']}/{result['output_token_count']}")
         print("   ✅ Input/Output token count verification successful for Sandbox.")
 
+# --- NEW TEST FUNCTION ---
+def test_execution_features():
+    print("\n" + "="*10 + " TESTING EXECUTION FEATURES " + "="*10 + "\n")
+    
+    test_user_id = "test_user_123"
+    
+    # Securely get the API key from environment variables
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        print("--- SKIPPING EXECUTION TESTS: OPENAI_API_KEY not found in environment variables. ---")
+        return
+
+    # 1. Save the user's API key
+    key_payload = {"provider": "openai", "api_key": openai_api_key}
+    run_test("Save User API Key", "POST", f"{BASE_URL}/users/{test_user_id}/keys", payload=key_payload, expected_status=204)
+
+    # 2. Run a managed execution (Success Case)
+    exec_payload = {
+        "user_id": test_user_id,
+        "model_name": "gpt-4o-mini",
+        "prompt_text": "What is the capital of Washington state?"
+    }
+    response = run_test("Managed Execution (Success)", "POST", f"{BASE_URL}/execute/managed", payload=exec_payload, expected_status=200)
+    if response:
+        assert "generated_text" in response
+        assert "Olympia" in response["generated_text"]
+        assert response["input_token_count"] > 0
+        assert response["output_token_count"] > 0
+        print("   ✅ Managed execution successful with valid response and metrics.")
+
+    # 3. Run a managed execution with a non-existent user (Failure Case)
+    fail_payload = {
+        "user_id": "non_existent_user_456",
+        "model_name": "gpt-4o-mini",
+        "prompt_text": "This should fail."
+    }
+    run_test("Managed Execution (Failure - No Key)", "POST", f"{BASE_URL}/execute/managed", payload=fail_payload, expected_status=403)
+    print("   ✅ Managed execution correctly failed for a user with no key.")
+
+
 def test_metrics_features():
     print("\n" + "="*10 + " TESTING METRICS FEATURES " + "="*10 + "\n")
+    
+    summary_response = run_test("Get Prompts Summary", "GET", f"{BASE_URL}/metrics/summary")
+    if summary_response and "results" in summary_response:
+        assert isinstance(summary_response["results"], list)
+        print("   ✅ Verified 'results' key is a list.")
+        if summary_response["results"]:
+            first_prompt = summary_response["results"][0]
+            assert "id" in first_prompt
+            assert "name" in first_prompt
+            assert "version_count" in first_prompt
+            assert "average_rating" in first_prompt
+            assert "rating_count" in first_prompt
+            print("   ✅ Verified structure of the first prompt summary object.")
+
     cost_payload = {
         "model_name": "gemini-2.5-flash-lite",
         "input_token_count": 10000,
@@ -114,22 +180,19 @@ def test_metrics_features():
     price_per_million_input = 0.35
     price_per_million_output = 0.70
     expected_cost = ((10000 / 1_000_000) * price_per_million_input) + ((5000 / 1_000_000) * price_per_million_output)
-
     actual_cost = response.get("estimated_cost_usd")
-    
     assert math.isclose(actual_cost, expected_cost), f"!!! COST VERIFICATION FAILED: Expected {expected_cost}, but got {actual_cost} !!!"
-    
     print(f"   -> Verified accurate cost calculation: ${actual_cost}")
     print("   ✅ Accurate cost calculation verification successful.")
 
 def cleanup(prompt_id):
     print("\n" + "="*10 + " CLEANING UP TEST RESOURCES " + "="*10 + "\n")
     if prompt_id:
-        run_test(f"Delete Prompt {prompt_id}", "DELETE", f"{BASE_URL}/prompts/{prompt_id}")
+        run_test(f"Delete Prompt {prompt_id}", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=204)
     templates = run_test("List All Templates for Cleanup", "GET", f"{BASE_URL}/templates/?tag=test_script")
     if templates:
         for t in templates:
-            run_test(f"Delete Template '{t['name']}'", "DELETE", f"{BASE_URL}/templates/{t['id']}")
+            run_test(f"Delete Template '{t['name']}'", "DELETE", f"{BASE_URL}/templates/{t['id']}", expected_status=204)
 
 if __name__ == "__main__":
     prompt_to_delete = None
@@ -138,6 +201,8 @@ if __name__ == "__main__":
         test_template_library()
         test_ai_features()
         test_metrics_features()
+        # --- NEW LINE ---
+        test_execution_features()
     finally:
         cleanup(prompt_to_delete)
         print("\n" + "="*10 + " TEST SUITE COMPLETE " + "="*10 + "\n")

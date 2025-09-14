@@ -3,6 +3,7 @@ import asyncio
 import time
 import json
 import hashlib
+import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 
@@ -14,44 +15,56 @@ from app.schemas.prompt import (
     BenchmarkRequest, BenchmarkResult, APEOptimizeRequest,
     DiagnoseRequest, BreakdownRequest, TemplateGenerateRequest,
     PromptTemplateCreate, RecommendRequest, SandboxRequest,
-    SandboxResult, SandboxPromptInput
+    SandboxResult, SandboxPromptInput, PromptExecuteResponse # <-- Import new schema
 )
 
 from app.core.db import db
 from app.services import firestore_service
 
-# --- Constants ---
+# --- Constants & Configuration ---
 DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite'
 API_CACHE_COLLECTION = "api_cache"
 CACHE_DURATION_MINUTES = 60
 
+RUBRIC_WEIGHTS = {
+    "has_clear_goal": 3.0,
+    "provides_examples": 2.0,
+    "specifies_constraints": 2.0,
+    "provides_context": 1.0,
+    "is_concise": 2.0,
+}
+
 # --- Configuration ---
 load_dotenv()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# --- Global Platform Clients (used for benchmarking, etc.) ---
 try:
+    platform_gemini_client = genai.GenerativeModel(DEFAULT_GEMINI_MODEL)
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 except Exception as e:
-    print(f"Could not configure Google AI: {e}")
+    logging.error(f"Could not configure Google AI: {e}")
+    platform_gemini_client = None
 
 try:
-    openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    platform_openai_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 except Exception as e:
-    print(f"Could not configure OpenAI: {e}")
+    logging.error(f"Could not configure OpenAI: {e}")
+    platform_openai_client = None
 
 
-# --- Core LLM Call Functions ---
-async def _call_gemini(model_name: str, prompt_text: str) -> tuple[str, int, int]:
-    model = genai.GenerativeModel(model_name)
-    input_token_count_response = await model.count_tokens_async(prompt_text)
+# --- Core LLM Call Functions (Refactored to accept clients) ---
+async def _call_gemini_with_client(client: genai.GenerativeModel, prompt_text: str) -> tuple[str, int, int]:
+    input_token_count_response = await client.count_tokens_async(prompt_text)
     input_tokens = input_token_count_response.total_tokens
-    response = await model.generate_content_async(prompt_text)
+    response = await client.generate_content_async(prompt_text)
     generated_text = response.text
-    output_token_count_response = await model.count_tokens_async(generated_text)
+    output_token_count_response = await client.count_tokens_async(generated_text)
     output_tokens = output_token_count_response.total_tokens
     return generated_text, input_tokens, output_tokens
 
-async def _call_openai(model_name: str, prompt_text: str) -> tuple[str, int, int]:
-    response = await openai_client.chat.completions.create(
+async def _call_openai_with_client(client: AsyncOpenAI, model_name: str, prompt_text: str) -> tuple[str, int, int]:
+    response = await client.chat.completions.create(
         model=model_name,
         messages=[{"role": "user", "content": prompt_text}]
     )
@@ -60,37 +73,85 @@ async def _call_openai(model_name: str, prompt_text: str) -> tuple[str, int, int
     output_tokens = response.usage.completion_tokens
     return generated_text, input_tokens, output_tokens
 
+
 # --- Main Service Functions ---
+
+# MODIFIED: Uses the new core functions with the platform's clients
 async def execute_single_model_benchmark(model_name: str, prompt_text: str) -> BenchmarkResult:
     cache_key = hashlib.sha256(f"{model_name}:{prompt_text}".encode()).hexdigest()
     cache_ref = db.collection(API_CACHE_COLLECTION).document(cache_key)
     cached_doc = await cache_ref.get()
+
     if cached_doc.exists:
         cached_data = cached_doc.to_dict()
-        cached_at = cached_data.get("created_at", datetime.now(timezone.utc))
-        if datetime.now(timezone.utc) - cached_at < timedelta(minutes=CACHE_DURATION_MINUTES):
-            print(f"⚡️ Cache HIT for model {model_name}.")
-            return BenchmarkResult(**cached_data.get("result", {}))
-    print(f"💸 Cache MISS for model {model_name}. Calling external API.")
+        if "created_at" in cached_data:
+            cached_at = cached_data["created_at"]
+            if datetime.now(timezone.utc) - cached_at < timedelta(minutes=CACHE_DURATION_MINUTES):
+                logging.info(f"⚡️ Cache HIT for model {model_name}.")
+                return BenchmarkResult(**cached_data.get("result", {}))
+
+    logging.info(f"💸 Cache MISS for model {model_name}. Calling external API.")
     start_time = time.perf_counter()
     generated_text, input_token_count, output_token_count = "Error: Model not supported.", 0, 0
     try:
         if model_name.startswith("gemini"):
-            generated_text, input_token_count, output_token_count = await _call_gemini(model_name, prompt_text)
+            generated_text, input_token_count, output_token_count = await _call_gemini_with_client(platform_gemini_client, prompt_text)
         elif model_name.startswith("gpt"):
-            generated_text, input_token_count, output_token_count = await _call_openai(model_name, prompt_text)
+            generated_text, input_token_count, output_token_count = await _call_openai_with_client(platform_openai_client, model_name, prompt_text)
     except Exception as e:
+        logging.error(f"API call failed for {model_name}: {e}")
         generated_text = f"Error calling {model_name}: {str(e)}"
+
     end_time = time.perf_counter()
     latency_ms = (end_time - start_time) * 1000
     result = BenchmarkResult(model_name=model_name, generated_text=generated_text, latency_ms=latency_ms, input_token_count=input_token_count, output_token_count=output_token_count)
     await cache_ref.set({"created_at": datetime.now(timezone.utc), "result": result.model_dump()})
     return result
 
+# --- NEW MANAGED EXECUTION SERVICE ---
+async def execute_managed_prompt(user_id: str, model_name: str, prompt_text: str) -> PromptExecuteResponse:
+    """
+    Executes a prompt against a third-party LLM using the user's own, securely stored API key.
+    """
+    provider = "google" if model_name.startswith("gemini") else "openai"
+    
+    # 1. Securely retrieve the user's decrypted API key
+    decrypted_key = await firestore_service.get_decrypted_user_api_key(user_id, provider)
+    if not decrypted_key:
+        raise HTTPException(status_code=403, detail=f"API key for provider '{provider}' not found or invalid.")
+
+    generated_text, input_tokens, output_tokens = "An error occurred.", 0, 0
+    try:
+        # 2. Initialize a temporary client with the user's key
+        if provider == "google":
+            # Note: Google's SDK uses a global configure() method, which is not ideal for this.
+            # For a real-world multi-tenant app, you'd investigate library alternatives
+            # that allow for per-request API keys. For now, this is a known limitation.
+            genai.configure(api_key=decrypted_key)
+            user_client = genai.GenerativeModel(model_name)
+            generated_text, input_tokens, output_tokens = await _call_gemini_with_client(user_client, prompt_text)
+        elif provider == "openai":
+            user_client = AsyncOpenAI(api_key=decrypted_key)
+            generated_text, input_tokens, output_tokens = await _call_openai_with_client(user_client, model_name, prompt_text)
+
+    except Exception as e:
+        logging.error(f"Managed execution failed for user {user_id} with model {model_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to execute prompt with the provided key: {str(e)}")
+
+    # 3. Return a standard response with the metrics
+    return PromptExecuteResponse(
+        generated_text=generated_text,
+        input_token_count=input_tokens,
+        output_token_count=output_tokens
+    )
+
+
 async def benchmark_prompt(request: BenchmarkRequest) -> list[BenchmarkResult]:
     tasks = [execute_single_model_benchmark(model_name, request.prompt_text) for model_name in request.models]
     results = await asyncio.gather(*tasks)
     return results
+
+# ... (The rest of the llm_service.py file remains the same) ...
 
 async def generate_optimized_prompt(request: APEOptimizeRequest) -> dict:
     model = genai.GenerativeModel(DEFAULT_GEMINI_MODEL)
@@ -108,13 +169,10 @@ EXAMPLES:\n{formatted_examples}
         response = await model.generate_content_async(meta_prompt, generation_config=generation_config)
         return json.loads(response.text)
     except Exception as e:
-        print(f"Error optimizing prompt: {e}")
+        logging.error(f"Error optimizing prompt: {e}")
         return {"optimized_prompt": "Error: Could not generate prompt.", "reasoning_summary": str(e)}
 
 async def diagnose_prompt(request: DiagnoseRequest) -> dict:
-    """
-    Uses a meta-prompt for qualitative analysis and a deterministic rubric for consistent scoring.
-    """
     model = genai.GenerativeModel(DEFAULT_GEMINI_MODEL)
     meta_prompt = f"""
 Your primary task is to analyze the prompt and return a JSON object with boolean flags for these criteria:
@@ -137,22 +195,19 @@ Analyze this prompt:
         response = await model.generate_content_async(meta_prompt, generation_config=generation_config)
         llm_result = json.loads(response.text)
 
-        # --- Validation Layer ---
-        required_keys = ["has_clear_goal", "provides_examples", "specifies_constraints", "provides_context", "is_concise", "diagnosis", "suggested_prompt"]
+        required_keys = list(RUBRIC_WEIGHTS.keys()) + ["diagnosis", "suggested_prompt"]
         if not all(key in llm_result for key in required_keys):
-            raise ValueError("LLM response missing required analysis keys.")
+            missing_keys = [key for key in required_keys if key not in llm_result]
+            raise ValueError(f"LLM response missing required analysis keys: {missing_keys}")
 
-        # --- Deterministic Scoring Rubric (Backend as Judge) ---
         score = 10.0
-        if not llm_result.get("has_clear_goal", False): score -= 3.0
-        if not llm_result.get("provides_examples", False): score -= 2.0
-        if not llm_result.get("specifies_constraints", False): score -= 2.0
-        if not llm_result.get("provides_context", False): score -= 1.0
-        if not llm_result.get("is_concise", False): score -= 2.0
-        
-        final_score = round(max(0.0, score), 2)
+        key_issues = []
+        for criterion, weight in RUBRIC_WEIGHTS.items():
+            if not llm_result.get(criterion, False):
+                score -= weight
+                key_issues.append(criterion)
 
-        key_issues = [k for k, v in llm_result.items() if k in required_keys[:5] and not v]
+        final_score = round(max(0.0, score), 2)
 
         return {
             "diagnosis": llm_result["diagnosis"],
@@ -166,9 +221,13 @@ Analyze this prompt:
             },
             "overall_score": final_score
         }
+    except ValueError as ve:
+        logging.error(f"Data validation error in diagnose_prompt: {ve}")
+        raise HTTPException(status_code=422, detail=str(ve))
     except Exception as e:
-        print(f"Error diagnosing prompt: {e}")
+        logging.error(f"General error in diagnose_prompt: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to diagnose prompt: {str(e)}")
+
 
 async def breakdown_prompt(request: BreakdownRequest) -> dict:
     model = genai.GenerativeModel(DEFAULT_GEMINI_MODEL)
@@ -189,7 +248,7 @@ Analyze and break down the following prompt:
         response = await model.generate_content_async(meta_prompt, generation_config=generation_config)
         return json.loads(response.text)
     except Exception as e:
-        print(f"Error breaking down prompt: {e}")
+        logging.error(f"Error breaking down prompt: {e}")
         return {"components": [{"type": "error", "content": f"An error occurred: {str(e)}","explanation": "The server failed to process the breakdown request."}]}
 
 async def generate_and_store_template(request: TemplateGenerateRequest) -> dict:
@@ -214,7 +273,7 @@ USER'S REQUEST:\nSTYLE DESCRIPTION: "{request.style_description}"\nINITIAL TAGS:
         created_template = await firestore_service.create_template(template_to_create)
         return created_template
     except Exception as e:
-        print(f"Error generating template: {e}")
+        logging.error(f"Error generating template: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate and store template: {str(e)}")
 
 async def recommend_templates(request: RecommendRequest) -> list[dict]:
@@ -234,7 +293,7 @@ User's Task: "{request.task_description}"
                 recommendations.append({"template": template, "reason": f"Recommended for tag(s): {', '.join(suggested_tags)}."})
         return recommendations
     except Exception as e:
-        print(f"Error recommending templates: {e}")
+        logging.error(f"Error recommending templates: {e}")
         return []
 
 async def _execute_single_sandbox_run(prompt_input: SandboxPromptInput, common_input: str, model_name: str) -> SandboxResult:

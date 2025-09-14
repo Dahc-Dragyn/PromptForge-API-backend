@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import prompts, templates, sandbox, metrics # 1. Import metrics
+from app.routers import prompts, templates, sandbox, metrics, execution
 
 # Initialize the FastAPI app
 app = FastAPI(
@@ -12,12 +12,13 @@ app = FastAPI(
 
 # --- THIS IS THE FIX ---
 # Define the specific origins that are allowed to connect.
-# Using a wildcard "*" is not allowed when allow_credentials=True.
 origins = [
     # This is your frontend's deployed URL
     "https://3000-firebase-prompforge-ui-1756407924093.cluster-feoix4uosfhdqsuxofg5hrq6vy.cloudworkstations.dev",
     # This is for local development
     "http://localhost:3000",
+    # --- NEW LINE: Add your Ngrok URL here ---
+    "https://db4f-24-22-90-227.ngrok-free.app",
 ]
 
 # Set up CORS
@@ -33,7 +34,8 @@ app.add_middleware(
 app.include_router(prompts.router)
 app.include_router(templates.router)
 app.include_router(sandbox.router)
-app.include_router(metrics.router) 
+app.include_router(metrics.router)
+app.include_router(execution.router)
 
 @app.get("/", tags=["Health Check"])
 def read_root():

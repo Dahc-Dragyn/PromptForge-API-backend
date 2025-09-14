@@ -47,6 +47,17 @@ class PromptExecuteResponse(BaseModel):
     input_token_count: Optional[int] = None
     output_token_count: Optional[int] = None
 
+# --- NEW SCHEMAS for Managed Execution ---
+class ManagedExecutionRequest(BaseModel):
+    user_id: str = Field(..., example="some_firebase_user_id")
+    model_name: str = Field(..., example="gpt-4o-mini")
+    prompt_text: str = Field(..., example="Explain the theory of relativity.")
+
+class UserAPIKey(BaseModel):
+    provider: str = Field(..., example="openai")
+    api_key: str = Field(..., example="sk-...")
+
+
 # --- APE Schemas ---
 class APEExample(BaseModel):
     input: str = Field(..., example="Customer review: 'The product is amazing!'")
@@ -66,8 +77,6 @@ class DiagnoseRequest(BaseModel):
     prompt_text: str = Field(..., example="Make a story.")
 
 class ScoreCriteria(BaseModel):
-    # --- MODIFIED BLOCK ---
-    # The criteria are now booleans, reflecting the LLM's analysis, not its score.
     clarity: bool
     specificity: bool
     context: bool
@@ -183,7 +192,7 @@ class RecommendResponse(BaseModel):
     """The response from the /templates/recommend endpoint."""
     recommendations: List[RecommendedTemplate]
 
-# --- Metrics Schemas ---
+# --- Metrics & Analytics Schemas ---
 class CostCalculationRequest(BaseModel):
     model_name: str = Field(..., example="gemini-2.5-flash-lite")
     input_token_count: int = Field(..., example=1000)
@@ -194,3 +203,11 @@ class CostCalculationResponse(BaseModel):
     input_token_count: int
     output_token_count: int
     estimated_cost_usd: float
+
+class PromptSummary(Prompt):
+    version_count: int
+    average_rating: float
+    rating_count: int
+
+class PromptsSummaryResponse(BaseModel):
+    results: List[PromptSummary]

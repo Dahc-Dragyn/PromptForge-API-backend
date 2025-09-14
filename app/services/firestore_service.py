@@ -15,10 +15,14 @@ from app.schemas.prompt import (
     PromptComposeRequest,
     Prompt # Import the main Prompt schema for validation
 )
+# --- MODIFIED BLOCK: Import security service ---
+from app.services.security_service import encrypt_key, decrypt_key
 
 # --- Constants ---
 PROMPTS_COLLECTION = "prompts"
 PROMPT_TEMPLATES_COLLECTION = "prompt_templates"
+# --- NEW CONSTANT ---
+USERS_COLLECTION = "users"
 
 
 # --- Prompt Service Functions ---
@@ -92,6 +96,29 @@ async def update_prompt_by_id(prompt_id: str, prompt_data: PromptUpdate) -> dict
 async def delete_prompt_by_id(prompt_id: str):
     """Deletes a prompt document by its ID."""
     await db.collection(PROMPTS_COLLECTION).document(prompt_id).delete()
+
+async def get_prompts_summary() -> list[dict]:
+    """
+    Retrieves all prompts and enriches them with aggregated metrics.
+    This is designed to be the primary data source for dashboard widgets.
+    """
+    prompts = await list_prompts()
+    summary_list = []
+
+    for prompt in prompts:
+        version_count = prompt.get("latest_version", 0)
+        average_rating = prompt.get("average_rating", 0.0)
+        rating_count = prompt.get("rating_count", 0)
+
+        summary_list.append({
+            **prompt,
+            "version_count": version_count,
+            "average_rating": average_rating,
+            "rating_count": rating_count
+        })
+
+    return summary_list
+
 
 # --- Versioning Service Functions ---
 
@@ -202,7 +229,6 @@ async def compose_prompt_from_tags(request: PromptComposeRequest) -> dict:
 async def list_templates_by_tags(tags: list[str]) -> list[dict]:
     """Retrieves all prompt templates that contain ANY of the given tags."""
     templates_list = []
-    # Firestore's 'array-contains-any' is perfect for this OR logic
     query = db.collection(PROMPT_TEMPLATES_COLLECTION).where(
         filter=FieldFilter("tags", "array_contains_any", tags)
     )
@@ -217,5 +243,30 @@ async def list_templates_by_tags(tags: list[str]) -> list[dict]:
 
 async def delete_template_by_id(template_id: str):
     """Deletes a template document by its ID."""
-    # This is idempotent, it won't error if the doc is already gone
     await db.collection(PROMPT_TEMPLATES_COLLECTION).document(template_id).delete()
+
+# --- NEW FUNCTIONS for User API Key Management ---
+
+async def save_user_api_key(user_id: str, provider: str, api_key: str):
+    """
+    Encrypts and saves a user's API key for a specific provider.
+    """
+    encrypted_key = encrypt_key(api_key)
+    key_ref = db.collection(USERS_COLLECTION).document(user_id).collection("credentials").document(provider)
+    await key_ref.set({"key": encrypted_key, "updated_at": datetime.now(timezone.utc)})
+
+async def get_decrypted_user_api_key(user_id: str, provider: str) -> str | None:
+    """
+    Retrieves and decrypts a user's API key for a specific provider.
+    Returns None if the key is not found.
+    """
+    key_ref = db.collection(USERS_COLLECTION).document(user_id).collection("credentials").document(provider)
+    key_doc = await key_ref.get()
+    if not key_doc.exists:
+        return None
+    
+    encrypted_key = key_doc.to_dict().get("key")
+    if not encrypted_key:
+        return None
+        
+    return decrypt_key(encrypted_key)
