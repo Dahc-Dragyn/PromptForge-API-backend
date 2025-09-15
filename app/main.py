@@ -7,7 +7,6 @@ app = FastAPI(
     title="PromptForge API",
     description="API for managing and optimizing LLM prompts.",
     version="0.1.0",
-    root_path="/api/promptforge"
 )
 
 # --- THIS IS THE FIX ---
