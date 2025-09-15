@@ -1,7 +1,8 @@
+# app/schemas/prompt.py
 from enum import Enum
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 # --- Prompt Version Schemas ---
 class PromptVersionBase(BaseModel):
@@ -20,10 +21,12 @@ class PromptVersion(PromptVersionBase):
         from_attributes = True
 
 # --- Main Prompt Schemas ---
+# This is the original, correct base model
 class PromptBase(BaseModel):
     name: str
     task_description: str
 
+# This is the original, correct creation model that the test script uses
 class PromptCreate(PromptBase):
     initial_prompt_text: str
 
@@ -39,15 +42,31 @@ class PromptUpdate(BaseModel):
     task_description: Optional[str] = None
 
 # --- Execution Schemas ---
+# This is the new, rich data model that the frontend needs for executions
+class PromptExecution(BaseModel):
+    id: str
+    prompt_version_id: str
+    executed_at: datetime
+    raw_response: Dict[str, Any]
+    final_text: str
+    input_token_count: int
+    output_token_count: int
+    latency_ms: int
+    cost: float
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    class Config:
+        from_attributes = True
+
+# The request from the frontend needs the 'model' and 'variables' fields
 class PromptExecuteRequest(BaseModel):
     prompt_text: str = Field(..., example="Explain quantum computing in simple terms.")
+    model: str = Field(..., example="gemini-1.5-pro-latest")
+    variables: Dict[str, Any] = Field({}, description="Key-value pairs for variables.")
 
-class PromptExecuteResponse(BaseModel):
-    generated_text: str
-    input_token_count: Optional[int] = None
-    output_token_count: Optional[int] = None
+# The old response type is now an alias for our new, better one.
+PromptExecuteResponse = PromptExecution
 
-# --- NEW SCHEMAS for Managed Execution ---
+# --- Managed Execution Schemas ---
 class ManagedExecutionRequest(BaseModel):
     user_id: str = Field(..., example="some_firebase_user_id")
     model_name: str = Field(..., example="gpt-4o-mini")

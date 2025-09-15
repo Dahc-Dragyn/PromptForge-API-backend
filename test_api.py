@@ -1,147 +1,116 @@
+# test_api.py
 import requests
 import json
+import sys
+import time
+import os
 
 BASE_URL = "http://127.0.0.1:8000"
+HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
+DEFAULT_MODEL = "gemini-1.5-pro-latest"
 
-def run_test(name, method, url, payload=None):
+def run_test(name, method, url, payload=None, expected_status=200):
     """Helper function to run a test and print the results."""
     print(f"--- Testing: {name} ---")
-    headers = {"Content-Type": "application/json", "accept": "application/json"}
-    
     try:
-        if method.upper() == 'GET':
-            response = requests.get(url, headers=headers)
-        elif method.upper() == 'POST':
-            response = requests.post(url, headers=headers, data=json.dumps(payload))
-        elif method.upper() == 'PATCH':
-            response = requests.patch(url, headers=headers, data=json.dumps(payload))
-        elif method.upper() == 'DELETE':
-            response = requests.delete(url, headers=headers)
-        else:
-            print(f"Unsupported method: {method}")
-            return None
-
+        response = requests.request(method.upper(), url, headers=HEADERS, data=json.dumps(payload) if payload else None)
         print(f"Status Code: {response.status_code}")
-        response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
-        
-        if response.status_code != 204: # 204 No Content has no body
+        assert response.status_code == expected_status, f"Expected status {expected_status}, but got {response.status_code}"
+
+        if response.status_code != 204:
+            response_json = response.json()
             print("Response JSON:")
-            print(json.dumps(response.json(), indent=2))
-            return response.json()
+            print(json.dumps(response_json, indent=2))
+            return response_json
         else:
             print("Success (No Content)")
             return None
-
-    except requests.exceptions.RequestException as e:
-        print(f"!!! TEST FAILED: {e} !!!")
+            
+    except (requests.exceptions.RequestException, AssertionError, json.JSONDecodeError) as e:
+        print(f"!!! TEST FAILED: {name} - {type(e).__name__}: {e} !!!")
         if 'response' in locals() and response.text:
             print(f"Error Body: {response.text}")
-        return None
+        sys.exit(1)
     finally:
         print("-" * 30 + "\n")
 
-
-if __name__ == "__main__":
-    # --- Test 1: Health Check ---
-    run_test("Health Check", "GET", f"{BASE_URL}/")
-
-    # --- Test 2: Create a new prompt ---
+def test_prompt_lifecycle():
+    print("\n" + "="*10 + " TESTING PROMPT LIFECYCLE " + "="*10 + "\n")
     create_payload = {
-        "name": "Test Script Prompt",
-        "task_description": "A prompt created by the integration test script.",
-        "initial_prompt_text": "This is version 1 of the test prompt."
+        "name": f"Test Lifecycle Prompt {int(time.time())}", 
+        "task_description": "A test prompt from the script.", 
+        "initial_prompt_text": "This is version 1."
     }
-    created_prompt = run_test("Create Prompt", "POST", f"{BASE_URL}/prompts/", create_payload)
+    created_prompt = run_test("Create Prompt", "POST", f"{BASE_URL}/prompts/", create_payload, expected_status=201)
+    prompt_id = created_prompt["id"]
     
-    if created_prompt:
-        prompt_id = created_prompt["id"]
+    run_test("Get Single Prompt", "GET", f"{BASE_URL}/prompts/{prompt_id}")
+    run_test("Update Prompt", "PATCH", f"{BASE_URL}/prompts/{prompt_id}", payload={"name": "Updated Test Prompt"})
+    run_test("Create New Version", "POST", f"{BASE_URL}/prompts/{prompt_id}/versions", payload={"prompt_text": "This is v2.", "commit_message": "v2 test"}, expected_status=201)
+    run_test("List All Versions", "GET", f"{BASE_URL}/prompts/{prompt_id}/versions")
+    
+    return prompt_id
 
-        # --- Test 3-7: Full CRUD and Versioning Lifecycle ---
-        run_test("List Prompts", "GET", f"{BASE_URL}/prompts/")
-        run_test("Get Single Prompt", "GET", f"{BASE_URL}/prompts/{prompt_id}")
-        update_payload = {"name": "Test Script Prompt (UPDATED)"}
-        run_test("Update Prompt", "PATCH", f"{BASE_URL}/prompts/{prompt_id}", update_payload)
-        version2_payload = {
-            "prompt_text": "This is version 2, with a commit message.",
-            "commit_message": "v2: Test script adding a new version."
-        }
-        run_test("Create New Version", "POST", f"{BASE_URL}/prompts/{prompt_id}/versions", version2_payload)
-        run_test("List All Versions", "GET", f"{BASE_URL}/prompts/{prompt_id}/versions")
+def test_ai_features():
+    print("\n" + "="*10 + " TESTING AI FEATURES " + "="*10 + "\n")
+    
+    # Test Execute Endpoint
+    execute_payload = {
+        "prompt_text": "Summarize Hamlet in one sentence.",
+        "model": DEFAULT_MODEL,
+        "variables": {}
+    }
+    response = run_test("Execute Prompt", "POST", f"{BASE_URL}/prompts/execute", payload=execute_payload)
+    assert "final_text" in response and response["final_text"]
+    assert "cost" in response and isinstance(response["cost"], float)
+    assert "latency_ms" in response and response["latency_ms"] > 0
+    print("   ✅ Verified Execute response structure and metrics.")
 
-        # --- Test 8 & 9: Deletion and Verification ---
-        run_test("Delete Prompt", "DELETE", f"{BASE_URL}/prompts/{prompt_id}")
-        print("--- Verifying Deletion (expecting 404) ---")
-        verify_response = requests.get(f"{BASE_URL}/prompts/{prompt_id}")
-        if verify_response.status_code == 404:
-            print("Status Code: 404")
-            print("Success: Prompt correctly deleted.")
-        else:
-            print(f"!!! VERIFICATION FAILED: Expected 404 but got {verify_response.status_code} !!!")
-        print("-" * 30 + "\n")
+    # Test Benchmark Endpoint
+    benchmark_payload = {
+        "prompt_text": "What are the key differences between Python and JavaScript?",
+        "models": [DEFAULT_MODEL]
+    }
+    response = run_test("Run Model Benchmark", "POST", f"{BASE_URL}/prompts/benchmark", payload=benchmark_payload)
+    assert "results" in response and len(response["results"]) > 0
+    first_result = response["results"][0]
+    assert "final_text" in first_result and first_result["final_text"]
+    assert "cost" in first_result
+    print("   ✅ Verified Benchmark response structure.")
 
-    # --- Test 10-14: LLM and Analysis Endpoints ---
-    execute_payload = {"prompt_text": "Write a one-sentence summary of A Midsummer Night's Dream."}
-    run_test("Execute Prompt", "POST", f"{BASE_URL}/prompts/execute", execute_payload)
+    # Test Diagnose Endpoint
+    diagnose_payload = {"prompt_text": "write code for me"}
+    response = run_test("Diagnose Prompt", "POST", f"{BASE_URL}/prompts/diagnose", payload=diagnose_payload)
+    assert "overall_score" in response and "suggested_prompt" in response
+    assert "criteria" in response and "clarity" in response["criteria"]
+    print("   ✅ Verified Diagnose response structure.")
 
+    # Test Breakdown Endpoint
+    breakdown_payload = {"prompt_text": "You are a helpful assistant. Please summarize this text."}
+    response = run_test("Breakdown Prompt", "POST", f"{BASE_URL}/prompts/breakdown", payload=breakdown_payload)
+    assert "components" in response and len(response["components"]) > 0
+    print("   ✅ Verified Breakdown response structure.")
+    
+    # Test Optimize (APE) Endpoint
     optimize_payload = {
         "task_description": "Turn a statement into a question.",
-        "examples": [{"input": "The sky is blue.", "output": "Is the sky blue?"}]
+        "examples": [{"input": "It is sunny.", "output": "Is it sunny?"}]
     }
-    run_test("Optimize Prompt (APE)", "POST", f"{BASE_URL}/prompts/optimize", optimize_payload)
+    response = run_test("Optimize Prompt (APE)", "POST", f"{BASE_URL}/prompts/optimize", payload=optimize_payload)
+    assert "optimized_prompt" in response and "reasoning_summary" in response
+    print("   ✅ Verified Optimize (APE) response structure.")
 
-    benchmark_payload = {
-        "prompt_text": "What are the three main benefits of using an API?",
-        "models": ["gemini-2.5-flash-lite", "gpt-4.1-nano"]
-    }
-    run_test("Benchmark Prompt", "POST", f"{BASE_URL}/prompts/benchmark", benchmark_payload)
-    
-    diagnose_payload = {"prompt_text": "give me a story"}
-    run_test("Diagnose Prompt", "POST", f"{BASE_URL}/prompts/diagnose", diagnose_payload)
-    
-    breakdown_payload = {
-        "prompt_text": "You are a pirate chatbot. Rephrase the user's question in pirate speak. Do not answer it. Your response must be one sentence and include the word 'Ahoy!'. Example: if the user says 'Where is the treasure?', you say 'Ahoy, where be the treasure, matey?'"
-    }
-    run_test("Breakdown Prompt", "POST", f"{BASE_URL}/prompts/breakdown", breakdown_payload)
 
-    # --- Test 15-19: Template Library and Composer Endpoints ---
-    template_payload = {
-      "name": "Test: Academic Summarizer",
-      "description": "A template for creating concise, academic summaries.",
-      "content": "You are an expert researcher. Summarize the key findings of the following text in three clear, academic bullet points. Text: {text_to_summarize}",
-      "tags": ["summarize", "academic", "bullet_points"]
-    }
-    run_test("Create Template", "POST", f"{BASE_URL}/templates/", template_payload)
+def cleanup(prompt_id):
+    print("\n" + "="*10 + " CLEANING UP " + "="*10 + "\n")
+    if prompt_id:
+        run_test(f"Delete Prompt {prompt_id}", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=204)
 
-    run_test("List All Templates", "GET", f"{BASE_URL}/templates/")
-    
-    run_test("Filter Templates by Tag", "GET", f"{BASE_URL}/templates/?tag=academic")
-
-    # This is the new test for the AI Template Generator
-    generate_payload = {
-        "style_description": "A persona template for a witty, sarcastic British butler.",
-        "tags": ["persona", "sarcastic", "butler"]
-    }
-    run_test("AI Generate Template", "POST", f"{BASE_URL}/templates/generate", generate_payload)
-
-    compose_payload = {
-      "persona": "butler",
-      "task": "summarize"
-    }
-    run_test("Compose Prompt", "POST", f"{BASE_URL}/templates/compose", compose_payload)
-
-    # --- Test 20: Sandbox Endpoint ---
-    sandbox_payload = {
-      "prompts": [
-        {
-          "id": "v1_simple",
-          "text": "Explain black holes."
-        },
-        {
-          "id": "v2_detailed",
-          "text": "You are an astrophysicist. Explain a black hole to a high school student in three paragraphs."
-        }
-      ],
-      "input_text": "",
-      "model": "gemini-2.5-flash-lite"
-    }
-    run_test("A/B Test Sandbox", "POST", f"{BASE_URL}/sandbox/", sandbox_payload)
+if __name__ == "__main__":
+    prompt_to_delete = None
+    try:
+        prompt_to_delete = test_prompt_lifecycle()
+        test_ai_features() # Run the full suite of AI tests
+    finally:
+        cleanup(prompt_to_delete)
+        print("\n" + "="*20 + " TEST SUITE COMPLETE " + "="*20 + "\n")

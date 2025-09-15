@@ -10,12 +10,16 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from openai import AsyncOpenAI
 from fastapi import HTTPException
+from uuid import uuid4
+
+# Import the new cost service
+from app.services import cost_service
 
 from app.schemas.prompt import (
     BenchmarkRequest, BenchmarkResult, APEOptimizeRequest,
     DiagnoseRequest, BreakdownRequest, TemplateGenerateRequest,
     PromptTemplateCreate, RecommendRequest, SandboxRequest,
-    SandboxResult, SandboxPromptInput, PromptExecuteResponse # <-- Import new schema
+    SandboxResult, SandboxPromptInput, PromptExecuteResponse, PromptExecuteRequest
 )
 
 from app.core.db import db
@@ -108,12 +112,13 @@ async def execute_single_model_benchmark(model_name: str, prompt_text: str) -> B
     await cache_ref.set({"created_at": datetime.now(timezone.utc), "result": result.model_dump()})
     return result
 
-# --- NEW MANAGED EXECUTION SERVICE ---
-async def execute_managed_prompt(user_id: str, model_name: str, prompt_text: str) -> PromptExecuteResponse:
+# --- MODIFIED MANAGED EXECUTION SERVICE ---
+async def execute_managed_prompt(request: PromptExecuteRequest, user_id: str) -> PromptExecuteResponse:
     """
     Executes a prompt against a third-party LLM using the user's own, securely stored API key.
+    Calculates and returns a PromptExecuteResponse object with full metrics.
     """
-    provider = "google" if model_name.startswith("gemini") else "openai"
+    provider = "google" if request.model.startswith("gemini") else "openai"
     
     # 1. Securely retrieve the user's decrypted API key
     decrypted_key = await firestore_service.get_decrypted_user_api_key(user_id, provider)
@@ -121,28 +126,41 @@ async def execute_managed_prompt(user_id: str, model_name: str, prompt_text: str
         raise HTTPException(status_code=403, detail=f"API key for provider '{provider}' not found or invalid.")
 
     generated_text, input_tokens, output_tokens = "An error occurred.", 0, 0
+    
+    start_time = time.perf_counter()
+
     try:
         # 2. Initialize a temporary client with the user's key
         if provider == "google":
-            # Note: Google's SDK uses a global configure() method, which is not ideal for this.
-            # For a real-world multi-tenant app, you'd investigate library alternatives
-            # that allow for per-request API keys. For now, this is a known limitation.
             genai.configure(api_key=decrypted_key)
-            user_client = genai.GenerativeModel(model_name)
-            generated_text, input_tokens, output_tokens = await _call_gemini_with_client(user_client, prompt_text)
+            user_client = genai.GenerativeModel(request.model)
+            generated_text, input_tokens, output_tokens = await _call_gemini_with_client(user_client, request.prompt_text)
         elif provider == "openai":
             user_client = AsyncOpenAI(api_key=decrypted_key)
-            generated_text, input_tokens, output_tokens = await _call_openai_with_client(user_client, model_name, prompt_text)
+            generated_text, input_tokens, output_tokens = await _call_openai_with_client(user_client, request.model, request.prompt_text)
+        
+        end_time = time.perf_counter()
+        latency_ms = (end_time - start_time) * 1000
+
+        # Calculate cost using the dedicated service
+        cost = await cost_service.calculate_cost(request.model, input_tokens, output_tokens)
 
     except Exception as e:
-        logging.error(f"Managed execution failed for user {user_id} with model {model_name}: {e}")
+        logging.error(f"Managed execution failed for user {user_id} with model {request.model}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to execute prompt with the provided key: {str(e)}")
 
-    # 3. Return a standard response with the metrics
+    # 3. Return a standard response with the full metrics
     return PromptExecuteResponse(
-        generated_text=generated_text,
+        id=str(uuid4()), # Generate a unique ID for this execution
+        prompt_version_id="temp-version-id", # Placeholder, as this isn't linked to a DB version
+        executed_at=datetime.now(timezone.utc),
+        raw_response={"text": generated_text}, # Simple dict to hold the text
+        final_text=generated_text,
         input_token_count=input_tokens,
-        output_token_count=output_tokens
+        output_token_count=output_tokens,
+        latency_ms=int(latency_ms),
+        cost=cost,
+        rating=None # No rating is set on initial execution
     )
 
 

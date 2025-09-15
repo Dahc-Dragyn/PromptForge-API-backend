@@ -1,6 +1,9 @@
+# app/routers/prompts.py
 from fastapi import APIRouter, Depends, HTTPException, Response
 from google.cloud.firestore_v1.async_client import AsyncClient
-from typing import List
+from typing import List, Dict, Any
+from datetime import datetime
+import uuid
 
 from app.core.db import get_firestore_client
 from app.schemas.prompt import (
@@ -10,7 +13,7 @@ from app.schemas.prompt import (
     PromptVersion,
     PromptVersionCreate,
     PromptExecuteRequest,
-    PromptExecuteResponse,
+    PromptExecution,  # <-- FIX: Import the correct, detailed schema
     APEOptimizeRequest,
     APEOptimizeResponse,
     BenchmarkRequest,
@@ -78,7 +81,6 @@ async def get_prompt_versions(prompt_id: str):
 
 @router.post("/{prompt_id}/versions", response_model=PromptVersion, status_code=201, tags=["Versioning"])
 async def create_new_version_for_prompt(prompt_id: str, version_data: PromptVersionCreate, db: AsyncClient = Depends(get_firestore_client)):
-    # This endpoint is an exception and still needs the db client to create the transaction
     transaction = db.transaction()
     try:
         new_version = await firestore_service.create_new_prompt_version(transaction, prompt_id, version_data)
@@ -91,17 +93,24 @@ async def create_new_version_for_prompt(prompt_id: str, version_data: PromptVers
 
 # === LLM Endpoints ===
 
-@router.post("/execute", response_model=PromptExecuteResponse, tags=["Execution"])
+# --- THIS IS THE FUNCTION TO FIX ---
+@router.post("/execute", response_model=PromptExecution, tags=["Execution"])
 async def execute_prompt_with_llm(request: PromptExecuteRequest):
-    result = await llm_service.execute_single_model_benchmark(
-        model_name="gemini-2.5-flash-lite", # <-- CORRECTED
-        prompt_text=request.prompt_text
-    )
-    return PromptExecuteResponse(
-        generated_text=result.generated_text,
-        input_token_count=result.input_token_count,
-        output_token_count=result.output_token_count
-    )
+    """
+    Executes a prompt for one-off runs and returns a full PromptExecution object.
+    """
+    try:
+        # Step 1: Call the updated service function with the full request object
+        return await llm_service.execute_managed_prompt(
+            request=request, 
+            user_id="temp-user-id" # Placeholder user ID for a one-off run
+        )
+
+    except HTTPException as e:
+        # Re-raise HTTPExceptions from the service layer
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred during prompt execution: {str(e)}")
 
 
 @router.post("/optimize", response_model=APEOptimizeResponse, tags=["APE"])
