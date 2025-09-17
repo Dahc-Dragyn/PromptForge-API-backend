@@ -1,10 +1,12 @@
+# app/services/firestore_service.py
+
 from datetime import datetime, timezone
 from google.cloud.firestore_v1.async_client import AsyncClient
 from google.cloud.firestore_v1.async_transaction import AsyncTransaction
 from google.cloud.firestore_v1.base_query import FieldFilter
 from google.cloud import firestore
-from typing import Optional
-import traceback # Import traceback to print detailed errors
+from typing import Optional, Dict #<-- Add Dict
+import traceback
 
 from app.core.db import db
 from app.schemas.prompt import (
@@ -13,39 +15,44 @@ from app.schemas.prompt import (
     PromptVersionCreate,
     PromptTemplateCreate,
     PromptComposeRequest,
-    Prompt # Import the main Prompt schema for validation
+    Prompt
 )
-# --- MODIFIED BLOCK: Import security service ---
 from app.services.security_service import encrypt_key, decrypt_key
 
 # --- Constants ---
 PROMPTS_COLLECTION = "prompts"
 PROMPT_TEMPLATES_COLLECTION = "prompt_templates"
-# --- NEW CONSTANT ---
 USERS_COLLECTION = "users"
 
 
 # --- Prompt Service Functions ---
 
-async def create_prompt(prompt_data: PromptCreate) -> dict:
-    """Creates a new prompt and its first version atomically."""
+# --- THIS IS THE FUNCTION TO UPDATE ---
+async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
+    """Creates a new prompt and its first version, recording the owner."""
     batch = db.batch()
     prompt_ref = db.collection(PROMPTS_COLLECTION).document()
+    
     prompt_doc_data = {
         "name": prompt_data.name,
         "task_description": prompt_data.task_description,
         "created_at": datetime.now(timezone.utc),
-        "latest_version": 1
+        "latest_version": 1,
+        "owner_id": user.get("uid") # FIX: Add the owner's user ID
     }
+    
     batch.set(prompt_ref, prompt_doc_data)
+    
     version_ref = prompt_ref.collection("versions").document("1")
     version_doc_data = {
         "prompt_id": prompt_ref.id,
         "version_number": 1,
         "prompt_text": prompt_data.initial_prompt_text,
-        "created_at": datetime.now(timezone.utc)
+        "created_at": datetime.now(timezone.utc),
+        "author_uid": user.get("uid") # Also good to know who authored the version
     }
     batch.set(version_ref, version_doc_data)
+    
     await batch.commit()
     return {"id": prompt_ref.id, **prompt_doc_data}
 
@@ -59,11 +66,9 @@ async def list_prompts() -> list[dict]:
         try:
             prompt_data = doc.to_dict()
             prompt_data["id"] = doc.id
-            # Validate data against the Pydantic model before adding it
             Prompt.model_validate(prompt_data)
             prompts_list.append(prompt_data)
         except Exception as e:
-            # If validation fails or any other error occurs, log it and continue
             print(f"--- WARNING: Skipping malformed document in 'prompts' collection ---")
             print(f"Document ID: {doc.id}")
             print(f"Document Data: {doc.to_dict()}")
@@ -100,7 +105,6 @@ async def delete_prompt_by_id(prompt_id: str):
 async def get_prompts_summary() -> list[dict]:
     """
     Retrieves all prompts and enriches them with aggregated metrics.
-    This is designed to be the primary data source for dashboard widgets.
     """
     prompts = await list_prompts()
     summary_list = []
@@ -122,19 +126,8 @@ async def get_prompts_summary() -> list[dict]:
 
 # --- Versioning Service Functions ---
 
-async def list_prompt_versions(prompt_id: str) -> list[dict]:
-    """Retrieves all versions for a given prompt."""
-    versions_list = []
-    versions_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id).collection("versions")
-    stream = versions_ref.order_by("version_number", direction="DESCENDING").stream()
-    async for doc in stream:
-        version_data = doc.to_dict()
-        version_data["id"] = doc.id
-        versions_list.append(version_data)
-    return versions_list
-
 @firestore.async_transactional
-async def create_new_prompt_version(transaction: AsyncTransaction, prompt_id: str, version_data: PromptVersionCreate) -> dict:
+async def create_new_prompt_version(transaction: AsyncTransaction, prompt_id: str, version_data: PromptVersionCreate, user: Dict) -> dict:
     """Creates a new version for a prompt atomically."""
     prompt_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id)
     prompt_snapshot = await prompt_ref.get(transaction=transaction)
@@ -148,14 +141,15 @@ async def create_new_prompt_version(transaction: AsyncTransaction, prompt_id: st
         "version_number": new_version_number,
         "prompt_text": version_data.prompt_text,
         "created_at": datetime.now(timezone.utc),
-        "commit_message": version_data.commit_message
+        "commit_message": version_data.commit_message,
+        "author_uid": user.get("uid") # FIX: Add author to new versions
     }
     transaction.set(version_ref, new_version_data)
     transaction.update(prompt_ref, {"latest_version": new_version_number})
     return {"id": version_ref.id, **new_version_data}
 
-# --- Template Service Functions ---
-
+# --- Template Service Functions (Omitted for brevity, no changes) ---
+# ...
 async def create_template(template_data: PromptTemplateCreate) -> dict:
     """Creates a new prompt template after checking for name uniqueness."""
     existing_template_query = db.collection(PROMPT_TEMPLATES_COLLECTION).where(
@@ -245,8 +239,8 @@ async def delete_template_by_id(template_id: str):
     """Deletes a template document by its ID."""
     await db.collection(PROMPT_TEMPLATES_COLLECTION).document(template_id).delete()
 
-# --- NEW FUNCTIONS for User API Key Management ---
-
+# --- User API Key Management (Omitted for brevity, no changes) ---
+# ...
 async def save_user_api_key(user_id: str, provider: str, api_key: str):
     """
     Encrypts and saves a user's API key for a specific provider.

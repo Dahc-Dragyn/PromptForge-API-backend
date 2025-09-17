@@ -1,0 +1,7 @@
+2025-09-17 10:36:55,792 | INFO | method=POST path='/prompts/' status_code=201 user_id='guIPYaSdv1TMvZ9nSA43t47Ssti2' client_ip='127.0.0.1' latency_ms=601.81
+2025-09-17 10:36:55,870 | INFO | method=DELETE path='/prompts/2tMNVfuirdLSPF6yIHlc' status_code=403 user_id='1rmdZtIWKoZz5TMHpFAxjp9eGkJ2' client_ip='127.0.0.1' latency_ms=68.20
+2025-09-17 10:36:55,937 | INFO | method=POST path='/prompts/' status_code=201 user_id='1rmdZtIWKoZz5TMHpFAxjp9eGkJ2' client_ip='127.0.0.1' latency_ms=63.81
+2025-09-17 10:36:56,060 | INFO | method=DELETE path='/prompts/yDcimp2xMfJGqgx1mwuV' status_code=204 user_id='1rmdZtIWKoZz5TMHpFAxjp9eGkJ2' client_ip='127.0.0.1' latency_ms=118.30
+2025-09-17 10:36:56,130 | INFO | method=POST path='/prompts/' status_code=201 user_id='1rmdZtIWKoZz5TMHpFAxjp9eGkJ2' client_ip='127.0.0.1' latency_ms=63.09
+2025-09-17 10:36:56,208 | INFO | method=DELETE path='/prompts/nFZDjSjXRjnS10OtV2jg' status_code=204 user_id='guIPYaSdv1TMvZ9nSA43t47Ssti2' client_ip='127.0.0.1' latency_ms=69.57
+2025-09-17 10:36:56,270 | INFO | method=DELETE path='/prompts/2tMNVfuirdLSPF6yIHlc' status_code=204 user_id='guIPYaSdv1TMvZ9nSA43t47Ssti2' client_ip='127.0.0.1' latency_ms=55.01
