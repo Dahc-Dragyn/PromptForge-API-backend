@@ -21,12 +21,10 @@ class PromptVersion(PromptVersionBase):
         from_attributes = True
 
 # --- Main Prompt Schemas ---
-# This is the original, correct base model
 class PromptBase(BaseModel):
     name: str
     task_description: str
 
-# This is the original, correct creation model that the test script uses
 class PromptCreate(PromptBase):
     initial_prompt_text: str
 
@@ -42,7 +40,6 @@ class PromptUpdate(BaseModel):
     task_description: Optional[str] = None
 
 # --- Execution Schemas ---
-# This is the new, rich data model that the frontend needs for executions
 class PromptExecution(BaseModel):
     id: str
     prompt_version_id: str
@@ -57,13 +54,11 @@ class PromptExecution(BaseModel):
     class Config:
         from_attributes = True
 
-# The request from the frontend needs the 'model' and 'variables' fields
 class PromptExecuteRequest(BaseModel):
     prompt_text: str = Field(..., example="Explain quantum computing in simple terms.")
     model: str = Field(..., example="gemini-1.5-pro-latest")
     variables: Dict[str, Any] = Field({}, description="Key-value pairs for variables.")
 
-# The old response type is now an alias for our new, better one.
 PromptExecuteResponse = PromptExecution
 
 # --- Managed Execution Schemas ---
@@ -223,10 +218,30 @@ class CostCalculationResponse(BaseModel):
     output_token_count: int
     estimated_cost_usd: float
 
-class PromptSummary(Prompt):
-    version_count: int
-    average_rating: float
-    rating_count: int
+# Schema for the "Top Prompts" widget on the dashboard
+class PromptSummary(BaseModel):
+    id: str
+    name: str
+    average_rating: Optional[float] = None
+    rating_count: int = 0
 
-class PromptsSummaryResponse(BaseModel):
-    results: List[PromptSummary]
+    class Config:
+        populate_by_name = True
+
+# Schema for the "Recent Activity" widget on the dashboard
+class RecentActivity(BaseModel):
+    id: str # This is the version ID
+    promptId: str
+    promptName: str
+    version: int
+    commit_message: str
+    created_at: datetime
+
+    class Config:
+        populate_by_name = True
+
+# --- ACTION: Add the missing schema for creating a new rating ---
+class RatingCreate(BaseModel):
+    prompt_id: str
+    version_number: int
+    rating: int = Field(..., ge=1, le=5)

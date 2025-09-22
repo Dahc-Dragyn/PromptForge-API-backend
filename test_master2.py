@@ -1,3 +1,4 @@
+# test_master.py
 import requests
 import json
 import sys
@@ -11,7 +12,6 @@ from firebase_admin import credentials, auth
 # --- Configuration ---
 load_dotenv()
 BASE_URL = "http://127.0.0.1:8000"
-# Use the cheapest Gemini model as per your instructions
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite" 
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 TEST_USER_ID = os.getenv("REGULAR_USER_UID", "test_suite_user_12345")
@@ -70,7 +70,7 @@ def run_test(name, method, url, payload=None, expected_status=None):
     except (requests.exceptions.RequestException, AssertionError, json.JSONDecodeError) as e:
         print(f"  ❌ FAILED: {name} - {type(e).__name__}: {e}")
         if 'response' in locals() and response.text:
-            print(f"    Error Body: {response.text}")
+            print(f"      Error Body: {response.text}")
         sys.exit(1)
 
 def test_health_check():
@@ -118,10 +118,15 @@ def test_sandbox_endpoints():
     print_test_header("Sandbox")
     run_test("A/B Test Sandbox", "POST", f"{BASE_URL}/sandbox/", payload={"prompts": [{"id": "v1", "text": "What is a CPU?"}, {"id": "v2", "text": "Explain a CPU to a 5th grader."}], "input_text": "", "model": DEFAULT_GEMINI_MODEL})
 
-def test_metrics_endpoints():
+# --- ACTION: Pass prompt_id to this function ---
+def test_metrics_endpoints(prompt_id: str):
     print_test_header("Metrics Endpoints")
     
-    # Test the new dashboard endpoints
+    # --- ACTION: Add a test for submitting a rating ---
+    rating_payload = {"prompt_id": prompt_id, "version_number": 1, "rating": 5}
+    run_test("Submit Rating", "POST", f"{BASE_URL}/metrics/ratings", payload=rating_payload, expected_status=201)
+    
+    # Test the dashboard endpoints
     top_prompts = run_test("Get Top Prompts", "GET", f"{BASE_URL}/metrics/prompts/all")
     assert isinstance(top_prompts, list)
     
@@ -180,9 +185,9 @@ if __name__ == "__main__":
         test_ai_and_analysis_endpoints()
         test_template_endpoints()
         test_sandbox_endpoints()
-        test_metrics_endpoints()
+        # --- ACTION: Pass the created prompt_id to the metrics tests ---
+        test_metrics_endpoints(prompt_id_to_delete)
         test_user_and_execution_endpoints()
     finally:
         cleanup(prompt_id_to_delete)
         print("\n" + "="*20 + " TEST SUITE COMPLETE " + "="*20 + "\n")
-
