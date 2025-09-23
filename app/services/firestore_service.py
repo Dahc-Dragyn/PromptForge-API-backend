@@ -1,4 +1,5 @@
 # app/services/firestore_service.py
+import logging
 from datetime import datetime, timezone
 from google.cloud.firestore_v1.async_client import AsyncClient
 from google.cloud.firestore_v1.async_transaction import AsyncTransaction
@@ -56,9 +57,10 @@ async def list_prompts() -> list[dict]:
             Prompt.model_validate(prompt_data)
             prompts_list.append(prompt_data)
         except Exception as e:
-            print(f"--- WARNING: Skipping malformed document in 'prompts' collection ---")
-            print(f"Document ID: {doc.id}")
-            print(f"Error: {e}")
+            # Replaced print() with logging.warning()
+            logging.warning(f"--- WARNING: Skipping malformed document in 'prompts' collection ---")
+            logging.warning(f"Document ID: {doc.id}")
+            logging.warning(f"Error: {e}")
     return prompts_list
 
 async def get_prompt_by_id(prompt_id: str) -> dict | None:
@@ -267,3 +269,4 @@ async def create_rating_for_version(user_id: str, prompt_id: str, version_number
         'created_at': datetime.now(timezone.utc)
     })
     return new_rating_ref.id
+

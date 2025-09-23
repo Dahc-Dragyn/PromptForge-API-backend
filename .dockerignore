@@ -1,3 +1,5 @@
+# .dockerignore
+
 # Ignore the Python virtual environment
 .venv
 
@@ -11,9 +13,9 @@ __pycache__/
 .dockerignore
 Dockerfile
 
-# VERY IMPORTANT: Ignore secrets and environment files
-.env
-service-account.json
+# VERY IMPORTANT: Allow secrets for the build process
+# .env
+# service-account.json
 .gcloudignore
 
 # Ignore test scripts
@@ -21,3 +23,7 @@ test_api.py
 cleanup_db.py
 seed_db.py
 test.py
+test_master.py
+test_log_rotation.py
+test_master2.py
+test_auth.py

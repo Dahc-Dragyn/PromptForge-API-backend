@@ -1,3 +1,4 @@
+# app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
@@ -10,7 +11,7 @@ log_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
 log_handler = RotatingFileHandler(
     'api_requests.log',
     mode='a',
-    maxBytes=1024,  # 1KB for testing - a very small size to force rotation quickly
+    maxBytes=5*1024*1024,  # Set log size to 5 MB
     backupCount=3,
     encoding=None,
     delay=0

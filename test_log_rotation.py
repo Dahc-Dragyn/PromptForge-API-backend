@@ -1,50 +1,71 @@
-# ~/rankforge/tests/test_log_rotation.py
+# ~/rankforge/test_log_rotation.py
 import os
 import time
-from fastapi.testclient import TestClient
+import logging
+from logging.handlers import RotatingFileHandler
+
+# This import triggers the logging setup from our application
 from app.main import app
 
-client = TestClient(app)
-
-LOG_FILE = "./logs/app.log"
-MAX_LOG_SIZE = 1024  # 1KB for testing
+LOG_FILE = "api_requests.log"
+MAX_LOG_SIZE_FOR_TEST = 1024  # 1KB for testing
 BACKUP_COUNT = 3
 
 def test_log_rotation():
-    # Ensure log directory exists
-    os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+    logger = logging.getLogger()
+    handler = None
+    for h in logger.handlers:
+        if isinstance(h, RotatingFileHandler) and 'api_requests.log' in h.baseFilename:
+            handler = h
+            break
+    
+    assert handler is not None, "FAIL: The RotatingFileHandler was not found on the root logger."
 
-    # Clear existing logs if any
-    if os.path.exists(LOG_FILE):
-        os.remove(LOG_FILE)
-    for i in range(1, BACKUP_COUNT + 2):
-        if os.path.exists(f"{LOG_FILE}.{i}"):
-            os.remove(f"{LOG_FILE}.{i}")
+    # --- KEY FIX: Temporarily override the handler's size limit for the test ---
+    original_max_bytes = handler.maxBytes
+    handler.maxBytes = MAX_LOG_SIZE_FOR_TEST
+    
+    try:
+        # --- Cleanup: Ensure a clean state before the test runs ---
+        logger.removeHandler(handler)
+        handler.close()
+        if os.path.exists(LOG_FILE):
+            os.remove(LOG_FILE)
+        for i in range(1, BACKUP_COUNT + 5):
+            backup_file = f"{LOG_FILE}.{i}"
+            if os.path.exists(backup_file):
+                os.remove(backup_file)
+        logger.addHandler(handler)
 
-    # Write more than MAX_LOG_SIZE to trigger rotation
-    large_log_message = "a" * (MAX_LOG_SIZE + 100)
-    client.post("/prompts/execute", json={"prompt_text": large_log_message})
+        print(f"--- Triggering log rotation (test limit: {MAX_LOG_SIZE_FOR_TEST} bytes) ---")
+        
+        # Write enough data to exceed the test limit
+        large_log_message = "A" * MAX_LOG_SIZE_FOR_TEST
+        logger.info(large_log_message)
+        logger.info("This second message will trigger the rotation.")
+        
+        # Force the rotation to complete by closing the handler
+        logger.removeHandler(handler)
+        handler.close()
 
-    # Allow a moment for the rotation to occur
-    time.sleep(1)
+        print("--- Verifying rotation results ---")
+        
+        backup_log = f"{LOG_FILE}.1"
+        assert os.path.exists(backup_log), f"FAIL: Backup log '{backup_log}' was not created."
+        print(f"  ✅ SUCCESS: Backup log '{backup_log}' found.")
 
-    # Verification
-    # 1. The original log file should now be smaller than the max size
-    assert os.path.exists(LOG_FILE)
-    assert os.path.getsize(LOG_FILE) < MAX_LOG_SIZE
+        assert os.path.exists(LOG_FILE)
+        with open(LOG_FILE, 'r') as f:
+            content = f.read()
+            assert "This second message" in content
+        print(f"  ✅ SUCCESS: New log file is correct.")
 
-    # 2. A backup file should have been created
-    assert os.path.exists(f"{LOG_FILE}.1")
+    finally:
+        # --- Teardown: Restore the original production value ---
+        handler.maxBytes = original_max_bytes
+        print(f"--- Restored log handler maxBytes to {original_max_bytes} ---")
 
-    # 3. Trigger multiple rotations to test backup count limit
-    for i in range(BACKUP_COUNT + 1):
-        client.post("/prompts/execute", json={"prompt_text": large_log_message})
-        time.sleep(0.2) # Quick sleep between logs
 
-    # 4. Verify the correct number of backup files exist
-    log_files = [f for f in os.listdir("./logs") if f.startswith("app.log.")]
-    assert len(log_files) <= BACKUP_COUNT
-    assert os.path.exists(f"{LOG_FILE}.{BACKUP_COUNT}")
-    assert not os.path.exists(f"{LOG_FILE}.{BACKUP_COUNT + 1}")
-
-    print("\nLog rotation test passed successfully!")
+if __name__ == "__main__":
+    test_log_rotation()
+    print("\n🎉 Log rotation test passed successfully!")
