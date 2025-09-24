@@ -15,8 +15,8 @@ router = APIRouter(
     tags=["Metrics"],
 )
 
-# --- FIX: Use the correct 'get_current_user' dependency from security_service.py ---
-@router.get("/prompts/all", response_model=List[PromptSummary])
+# The correct endpoint path the frontend expects
+@router.get("/prompts/top", response_model=List[PromptSummary])
 async def get_top_prompts(user: Dict = Depends(security_service.get_current_user)):
     """
     Retrieves a list of all prompts for the current user with aggregated analytics.
@@ -24,7 +24,6 @@ async def get_top_prompts(user: Dict = Depends(security_service.get_current_user
     summary_results = await firestore_service.get_prompt_summary_with_ratings(user['uid'])
     return summary_results
 
-# --- FIX: Use the correct 'get_current_user' dependency ---
 @router.get("/activity/recent", response_model=List[RecentActivity])
 async def get_recent_activity(user: Dict = Depends(security_service.get_current_user)):
     """
@@ -33,7 +32,6 @@ async def get_recent_activity(user: Dict = Depends(security_service.get_current_
     activity_results = await firestore_service.get_recent_activity(user['uid'])
     return activity_results
 
-# --- FIX: Use the correct 'get_current_user' dependency ---
 @router.post("/ratings", status_code=201)
 async def submit_rating(rating_data: RatingCreate, user: Dict = Depends(security_service.get_current_user)):
     """

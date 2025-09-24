@@ -1,7 +1,5 @@
-# app/services/security_service.py
-
 import os
-import logging  # Import the logging library
+import logging
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 import firebase_admin
@@ -15,22 +13,14 @@ from app.services import firestore_service
 # Load environment variables
 load_dotenv()
 
-# --- Fernet Encryption Setup (Unchanged) ---
+# --- Fernet Encryption Setup ---
 ENCRYPTION_KEY = os.getenv("FERNET_KEY")
 if not ENCRYPTION_KEY:
     raise ValueError("FERNET_KEY is not set. Please add it to your .env file.")
 cipher_suite = Fernet(ENCRYPTION_KEY.encode())
 
-# --- Firebase Admin SDK Setup (CORRECTED) ---
-try:
-    if not firebase_admin._apps:
-        cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-        firebase_admin.initialize_app(cred)
-    # Replaced print() with logging.info()
-    logging.info("Firebase Admin SDK initialized successfully.")
-except Exception as e:
-    # Replaced print() with logging.error() for better error handling
-    logging.error(f"FATAL: Firebase Admin SDK failed to initialize: {e}")
+# --- REMOVED REDUNDANT FIREBASE INIT BLOCK ---
+# The initialization is now correctly handled in app/main.py via app/core/db.py
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -45,7 +35,6 @@ async def get_current_user(
     """
     try:
         decoded_token = auth.verify_id_token(token)
-        # Attach the user data to the request state
         request.state.user = decoded_token
         return decoded_token
     except Exception as e:
@@ -75,21 +64,21 @@ class PromptOwnerOrAdmin:
         current_user: Dict = Depends(get_current_user)
     ):
         if current_user.get("role") == "admin":
-            return current_user  # Return the user object on success
+            return current_user
 
         prompt = await firestore_service.get_prompt_by_id(prompt_id)
         if not prompt:
-            return current_user  # Let the endpoint handle the 404, but still return the user
+            return current_user
 
         if prompt.get("owner_id") != current_user.get("uid"):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You are not authorized to modify this prompt."
             )
-
+        
         return current_user
 
-# --- Encryption Functions (Unchanged) ---
+# --- Encryption Functions ---
 def encrypt_key(api_key: str) -> str:
     """Encrypts a user's API key."""
     if not api_key: return ""
@@ -99,3 +88,4 @@ def decrypt_key(encrypted_key: str) -> str:
     """Decrypts a user's API key."""
     if not encrypted_key: return ""
     return cipher_suite.decrypt(encrypted_key.encode()).decode()
+

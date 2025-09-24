@@ -57,7 +57,6 @@ async def list_prompts() -> list[dict]:
             Prompt.model_validate(prompt_data)
             prompts_list.append(prompt_data)
         except Exception as e:
-            # Replaced print() with logging.warning()
             logging.warning(f"--- WARNING: Skipping malformed document in 'prompts' collection ---")
             logging.warning(f"Document ID: {doc.id}")
             logging.warning(f"Error: {e}")
@@ -217,6 +216,8 @@ async def get_prompt_summary_with_ratings(user_id: str) -> List[Dict[str, Any]]:
         summary = {
             "id": prompt_id,
             "name": prompt_data.get("name"),
+            # FIX: Add the missing description field to match the Pydantic schema
+            "description": prompt_data.get("task_description", ""), 
             "average_rating": avg_rating,
             "rating_count": len(ratings)
         }
@@ -224,7 +225,6 @@ async def get_prompt_summary_with_ratings(user_id: str) -> List[Dict[str, Any]]:
         
     return summaries
 
-# --- ACTION: Revert to the efficient, index-based query ---
 async def get_recent_activity(user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
     """
     Retrieves the most recently created prompt versions for a specific user,
@@ -269,4 +269,3 @@ async def create_rating_for_version(user_id: str, prompt_id: str, version_number
         'created_at': datetime.now(timezone.utc)
     })
     return new_rating_ref.id
-
