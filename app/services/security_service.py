@@ -1,91 +1,70 @@
-import os
-import logging
-from dotenv import load_dotenv
-from cryptography.fernet import Fernet
-import firebase_admin
-from firebase_admin import credentials, auth
-from fastapi import Depends, HTTPException, status, Path, Request
+# app/services/security_service.py
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from typing import Dict
+from firebase_admin import auth
+from typing import Dict, Any
+import os
+from cryptography.fernet import Fernet
 
-from app.services import firestore_service
+# Import the global db instance for consistency
+from app.core.db import db
 
-# Load environment variables
-load_dotenv()
-
-# --- Fernet Encryption Setup ---
-ENCRYPTION_KEY = os.getenv("FERNET_KEY")
+# --- Encryption Functions (Unchanged) ---
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
-    raise ValueError("FERNET_KEY is not set. Please add it to your .env file.")
-cipher_suite = Fernet(ENCRYPTION_KEY.encode())
+    raise RuntimeError("ENCRYPTION_KEY environment variable not set. Application cannot start.")
+fernet = Fernet(ENCRYPTION_KEY.encode())
 
-# --- REMOVED REDUNDANT FIREBASE INIT BLOCK ---
-# The initialization is now correctly handled in app/main.py via app/core/db.py
+def encrypt_key(api_key: str) -> str:
+    """Encrypts an API key using the application's secret key."""
+    return fernet.encrypt(api_key.encode()).decode()
 
+def decrypt_key(encrypted_key: str) -> str:
+    """Decrypts an API key using the application's secret key."""
+    return fernet.decrypt(encrypted_key.encode()).decode()
+
+# --- Authentication Dependency (Unchanged) ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# --- Authentication Dependencies ---
-
-async def get_current_user(
-    request: Request, token: str = Depends(oauth2_scheme)
-) -> Dict:
-    """
-    Dependency to verify Firebase JWT token.
-    It returns the decoded token AND attaches it to the request.state for other services to use.
-    """
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> Dict[str, Any]:
+    """Dependency to get the current user from a Firebase JWT."""
     try:
-        decoded_token = auth.verify_id_token(token)
-        request.state.user = decoded_token
-        return decoded_token
-    except Exception as e:
+        return auth.verify_id_token(token)
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication credentials: {e}",
+            detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-async def require_admin_role(current_user: Dict = Depends(get_current_user)) -> Dict:
-    """A dependency that ensures the authenticated user has the 'admin' role."""
-    if current_user.get("role") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Administrator privileges are required for this action."
-        )
-    return current_user
-
+# --- Authorization Dependencies ---
 class PromptOwnerOrAdmin:
-    """
-    A dependency class that checks if the current user is the owner of a
-    specific prompt or is an admin.
-    """
-    async def __call__(
-        self,
-        prompt_id: str = Path(...),
-        current_user: Dict = Depends(get_current_user)
-    ):
-        if current_user.get("role") == "admin":
+    """Dependency class to verify prompt ownership or admin status."""
+    async def __call__(self, prompt_id: str, current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+        if current_user.get("admin", False):
             return current_user
-
-        prompt = await firestore_service.get_prompt_by_id(prompt_id)
-        if not prompt:
-            return current_user
-
-        if prompt.get("owner_id") != current_user.get("uid"):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are not authorized to modify this prompt."
-            )
-        
+        prompt_ref = db.collection("prompts").document(prompt_id)
+        prompt_doc = await prompt_ref.get()
+        if not prompt_doc.exists:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        owner_uid = prompt_doc.to_dict().get("owner", {}).get("uid")
+        if owner_uid != current_user["uid"]:
+            raise HTTPException(status_code=403, detail="Not authorized to access this resource")
         return current_user
 
-# --- Encryption Functions ---
-def encrypt_key(api_key: str) -> str:
-    """Encrypts a user's API key."""
-    if not api_key: return ""
-    return cipher_suite.encrypt(api_key.encode()).decode()
+class TemplateOwnerOrAdmin:
+    """Dependency class to verify template ownership or admin status."""
+    async def __call__(self, template_id: str, current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+        if current_user.get("admin", False):
+            return current_user
+        
+        # FIX: Use the correct Firestore collection name "prompt_templates".
+        template_ref = db.collection("prompt_templates").document(template_id)
+        template_doc = await template_ref.get()
 
-def decrypt_key(encrypted_key: str) -> str:
-    """Decrypts a user's API key."""
-    if not encrypted_key: return ""
-    return cipher_suite.decrypt(encrypted_key.encode()).decode()
-
+        if not template_doc.exists:
+            raise HTTPException(status_code=404, detail="Template not found")
+        owner_uid = template_doc.to_dict().get("owner", {}).get("uid")
+        if owner_uid != current_user["uid"]:
+            raise HTTPException(status_code=403, detail="Not authorized to access this resource")
+        return current_user

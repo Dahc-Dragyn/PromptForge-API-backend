@@ -136,6 +136,12 @@ class PromptTemplateBase(BaseModel):
 class PromptTemplateCreate(PromptTemplateBase):
     pass
 
+class PromptTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    content: Optional[str] = None
+    tags: Optional[List[str]] = None
+
 class PromptTemplate(PromptTemplateBase):
     id: str
     created_at: datetime
@@ -147,13 +153,10 @@ class TemplateGenerateRequest(BaseModel):
     style_description: str = Field(..., example="A formal persona for summarizing legal documents.")
     tags: Optional[List[str]] = Field(None)
 
+# FIX: Redefine this schema to match the endpoint logic and test script.
 class PromptComposeRequest(BaseModel):
-    task: Optional[str] = Field(None, example="summarize")
-    style: Optional[str] = Field(None, example="academic")
-    persona: Optional[str] = Field(None, example="expert_researcher")
-    output_format: Optional[str] = Field(None, example="bullet_points")
-    domain: Optional[str] = Field(None, example="science")
-    language: Optional[str] = Field(None, example="en")
+    template_text: str
+    variables: Dict[str, str]
 
 class PromptComposeResponse(BaseModel):
     composed_prompt: str
@@ -194,16 +197,13 @@ class SandboxResponse(BaseModel):
     results: List[SandboxResult]
 
 class RecommendRequest(BaseModel):
-    """The request body for the /templates/recommend endpoint."""
     task_description: str = Field(..., example="I need to write a professional email to a client.")
 
 class RecommendedTemplate(BaseModel):
-    """A single recommended template with a reason."""
     template: PromptTemplate
     reason: str
 
 class RecommendResponse(BaseModel):
-    """The response from the /templates/recommend endpoint."""
     recommendations: List[RecommendedTemplate]
 
 # --- Metrics & Analytics Schemas ---
@@ -218,29 +218,24 @@ class CostCalculationResponse(BaseModel):
     output_token_count: int
     estimated_cost_usd: float
 
-# Schema for the "Top Prompts" widget on the dashboard
 class PromptSummary(BaseModel):
     id: str
     name: str
     average_rating: Optional[float] = None
     rating_count: int = 0
-
     class Config:
         populate_by_name = True
 
-# Schema for the "Recent Activity" widget on the dashboard
 class RecentActivity(BaseModel):
-    id: str # This is the version ID
+    id: str
     promptId: str
     promptName: str
     version: int
     commit_message: str
     created_at: datetime
-
     class Config:
         populate_by_name = True
 
-# --- ACTION: Add the missing schema for creating a new rating ---
 class RatingCreate(BaseModel):
     prompt_id: str
     version_number: int

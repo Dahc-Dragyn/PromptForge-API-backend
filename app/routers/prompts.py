@@ -14,8 +14,8 @@ from app.schemas.prompt import (
     BreakdownRequest, BreakdownResponse
 )
 
+# FIX: The 'prefix' argument is removed to allow main.py to control the routing path.
 router = APIRouter(
-    prefix="/prompts",
     tags=["Prompts"],
 )
 
