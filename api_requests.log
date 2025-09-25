@@ -355,3 +355,299 @@
 2025-09-24 12:36:02,789 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=103.27
 2025-09-24 12:36:02,940 | INFO | method=DELETE path='/api/v1/templates/G9R4l9ZcCfEcpmPhbofr' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=142.43
 2025-09-25 06:50:09,436 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 06:52:37,015 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.67
+2025-09-25 06:52:37,686 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=664.63
+2025-09-25 06:52:37,906 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=215.54
+2025-09-25 06:52:37,999 | INFO | method=GET path='/api/v1/prompts/VHfY6iJrYZBpdpwZr10L' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=87.44
+2025-09-25 06:52:38,398 | INFO | method=PATCH path='/api/v1/prompts/VHfY6iJrYZBpdpwZr10L' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=391.35
+2025-09-25 06:52:38,694 | INFO | method=POST path='/api/v1/prompts/VHfY6iJrYZBpdpwZr10L/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=286.78
+2025-09-25 06:52:38,884 | INFO | method=GET path='/api/v1/prompts/VHfY6iJrYZBpdpwZr10L/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=181.26
+2025-09-25 06:52:40,592 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1697.43
+2025-09-25 06:52:41,964 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1363.87
+2025-09-25 06:52:43,108 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1135.24
+2025-09-25 06:52:43,209 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=94.79
+2025-09-25 06:52:43,431 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=213.26
+2025-09-25 06:52:43,445 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.38
+2025-09-25 06:52:43,643 | INFO | method=DELETE path='/api/v1/prompts/VHfY6iJrYZBpdpwZr10L' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=142.06
+2025-09-25 06:52:43,765 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=115.32
+2025-09-25 06:52:43,937 | INFO | method=DELETE path='/api/v1/templates/3GfMMu5qU34eMnRT8f5V' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=162.14
+2025-09-25 06:53:06,495 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 06:53:08,381 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 06:53:14,640 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.52
+2025-09-25 06:53:15,368 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=722.85
+2025-09-25 06:53:15,523 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=149.86
+2025-09-25 06:53:15,598 | INFO | method=GET path='/api/v1/prompts/5bpOkItbBxkd1zOZq8EJ' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=67.37
+2025-09-25 06:53:15,931 | INFO | method=PATCH path='/api/v1/prompts/5bpOkItbBxkd1zOZq8EJ' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=325.94
+2025-09-25 06:53:16,243 | INFO | method=POST path='/api/v1/prompts/5bpOkItbBxkd1zOZq8EJ/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=303.43
+2025-09-25 06:53:16,388 | INFO | method=GET path='/api/v1/prompts/5bpOkItbBxkd1zOZq8EJ/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=136.86
+2025-09-25 06:53:17,398 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=999.85
+2025-09-25 06:53:18,471 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1065.09
+2025-09-25 06:53:19,274 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=793.70
+2025-09-25 06:53:19,375 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=92.01
+2025-09-25 06:53:19,526 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=143.23
+2025-09-25 06:53:19,539 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.10
+2025-09-25 06:53:20,825 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1277.72
+2025-09-25 06:53:21,280 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-09-25 06:53:21,281 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=448.09
+2025-09-25 06:53:21,402 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.05
+2025-09-25 06:53:22,109 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=697.24
+2025-09-25 06:53:22,199 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=82.52
+2025-09-25 06:53:23,831 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 06:53:23,871 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1666.52
+2025-09-25 06:53:23,885 | INFO | method=POST path='/api/v1/users/execute' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=6.27
+2025-09-25 06:53:24,027 | INFO | method=DELETE path='/api/v1/prompts/5bpOkItbBxkd1zOZq8EJ' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=134.10
+2025-09-25 06:53:24,148 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.30
+2025-09-25 06:53:24,323 | INFO | method=DELETE path='/api/v1/templates/FyA6v1oWl1RLlZ1wVNUV' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=165.49
+2025-09-25 06:53:24,479 | INFO | method=DELETE path='/api/v1/templates/ZL6lHqyW1FnRB5yKbPAQ' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=147.98
+2025-09-25 06:55:50,971 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 06:55:52,817 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:10:57,557 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.77
+2025-09-25 07:10:57,585 | INFO | method=POST path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.79
+2025-09-25 07:14:35,766 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.62
+2025-09-25 07:14:35,785 | INFO | method=POST path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.73
+2025-09-25 07:17:13,221 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.12
+2025-09-25 07:17:13,960 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=719.60
+2025-09-25 07:19:12,990 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:19:14,873 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:19:29,172 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:19:34,196 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.28
+2025-09-25 07:19:34,941 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=737.84
+2025-09-25 07:19:35,088 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=141.74
+2025-09-25 07:19:35,187 | INFO | method=GET path='/api/v1/prompts/nDKw5cqTQeAnfqZRdICb' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=90.46
+2025-09-25 07:19:35,543 | INFO | method=PATCH path='/api/v1/prompts/nDKw5cqTQeAnfqZRdICb' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=348.48
+2025-09-25 07:19:35,909 | INFO | method=POST path='/api/v1/prompts/nDKw5cqTQeAnfqZRdICb/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=356.37
+2025-09-25 07:19:36,088 | INFO | method=GET path='/api/v1/prompts/nDKw5cqTQeAnfqZRdICb/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=170.74
+2025-09-25 07:19:37,616 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1520.74
+2025-09-25 07:19:38,697 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1071.83
+2025-09-25 07:19:39,616 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=910.60
+2025-09-25 07:19:39,724 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=100.10
+2025-09-25 07:19:39,907 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=174.77
+2025-09-25 07:19:39,920 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.27
+2025-09-25 07:19:42,223 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2294.57
+2025-09-25 07:19:42,738 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-09-25 07:19:42,740 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=507.96
+2025-09-25 07:19:42,864 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=115.78
+2025-09-25 07:19:43,635 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=763.14
+2025-09-25 07:19:43,730 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=86.05
+2025-09-25 07:19:46,712 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 07:19:46,763 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3024.22
+2025-09-25 07:19:46,778 | INFO | method=POST path='/api/v1/users/execute' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=7.40
+2025-09-25 07:19:46,932 | INFO | method=DELETE path='/api/v1/prompts/nDKw5cqTQeAnfqZRdICb' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=145.38
+2025-09-25 07:19:47,051 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=110.97
+2025-09-25 07:19:47,201 | INFO | method=DELETE path='/api/v1/templates/58NCa75pKqkK4Z8wxNxy' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=140.69
+2025-09-25 07:19:47,347 | INFO | method=DELETE path='/api/v1/templates/qaLGmNpwT0M2DWScHnrr' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=137.10
+2025-09-25 07:26:35,713 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:26:37,604 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:26:41,926 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.16
+2025-09-25 07:26:42,983 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=761.89
+2025-09-25 07:26:43,104 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.57
+2025-09-25 07:26:43,185 | INFO | method=GET path='/api/v1/prompts/pQWMiVSJslhURKx8mA9H' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=76.26
+2025-09-25 07:26:43,505 | INFO | method=PATCH path='/api/v1/prompts/pQWMiVSJslhURKx8mA9H' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=314.74
+2025-09-25 07:26:43,811 | INFO | method=POST path='/api/v1/prompts/pQWMiVSJslhURKx8mA9H/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=296.72
+2025-09-25 07:26:43,959 | INFO | method=GET path='/api/v1/prompts/pQWMiVSJslhURKx8mA9H/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=139.80
+2025-09-25 07:26:44,959 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=991.79
+2025-09-25 07:26:45,951 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=983.36
+2025-09-25 07:26:46,685 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=725.59
+2025-09-25 07:26:46,807 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.02
+2025-09-25 07:26:46,913 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=97.78
+2025-09-25 07:26:46,926 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.44
+2025-09-25 07:26:48,699 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1763.45
+2025-09-25 07:26:49,847 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-09-25 07:26:49,849 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1141.52
+2025-09-25 07:26:50,006 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=148.28
+2025-09-25 07:26:50,780 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=765.86
+2025-09-25 07:26:50,865 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=80.56
+2025-09-25 07:26:52,712 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 07:26:52,761 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1887.61
+2025-09-25 07:26:52,850 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=81.89
+2025-09-25 07:26:53,860 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1001.72
+2025-09-25 07:26:54,287 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=94.57
+2025-09-25 07:26:54,834 | INFO | method=PATCH path='/api/v1/prompts/GpuPQRcPCSmpPwqQjn8p' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=61.15
+2025-09-25 07:26:54,918 | INFO | method=DELETE path='/api/v1/prompts/GpuPQRcPCSmpPwqQjn8p' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=76.11
+2025-09-25 07:26:55,429 | INFO | method=DELETE path='/api/v1/prompts/GpuPQRcPCSmpPwqQjn8p' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=153.86
+2025-09-25 07:26:55,918 | INFO | method=DELETE path='/api/v1/prompts/pQWMiVSJslhURKx8mA9H' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=145.07
+2025-09-25 07:26:56,038 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.28
+2025-09-25 07:26:56,223 | INFO | method=DELETE path='/api/v1/templates/kiV722wTvdMSZkH2ikS6' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=175.61
+2025-09-25 07:26:56,363 | INFO | method=DELETE path='/api/v1/templates/xRg4L3QcdRBGVd4FpSaT' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=134.75
+2025-09-25 07:37:05,495 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:37:07,384 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:37:09,276 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:37:13,787 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.19
+2025-09-25 07:37:14,804 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=726.86
+2025-09-25 07:37:14,945 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=134.95
+2025-09-25 07:37:15,036 | INFO | method=GET path='/api/v1/prompts/xggXE7HTxs0RHXJe2b6d' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=84.53
+2025-09-25 07:37:15,408 | INFO | method=PATCH path='/api/v1/prompts/xggXE7HTxs0RHXJe2b6d' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=365.64
+2025-09-25 07:37:15,745 | INFO | method=POST path='/api/v1/prompts/xggXE7HTxs0RHXJe2b6d/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=328.65
+2025-09-25 07:37:15,923 | INFO | method=GET path='/api/v1/prompts/xggXE7HTxs0RHXJe2b6d/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=168.44
+2025-09-25 07:37:16,779 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=847.31
+2025-09-25 07:37:17,982 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1197.81
+2025-09-25 07:37:18,639 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=648.71
+2025-09-25 07:37:18,754 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=106.92
+2025-09-25 07:37:18,870 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=107.96
+2025-09-25 07:37:18,883 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.34
+2025-09-25 07:37:20,734 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1842.04
+2025-09-25 07:37:21,301 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=558.60
+2025-09-25 07:37:21,428 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=118.68
+2025-09-25 07:37:22,218 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=781.34
+2025-09-25 07:37:22,310 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=83.21
+2025-09-25 07:37:23,950 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 07:37:23,989 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1670.98
+2025-09-25 07:37:24,067 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=69.28
+2025-09-25 07:37:25,063 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=987.66
+2025-09-25 07:37:25,485 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=85.62
+2025-09-25 07:37:25,948 | INFO | method=PATCH path='/api/v1/prompts/wyZCjyPSsEHkC5zpbMBw' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=70.51
+2025-09-25 07:37:26,021 | INFO | method=DELETE path='/api/v1/prompts/wyZCjyPSsEHkC5zpbMBw' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=66.13
+2025-09-25 07:37:26,474 | INFO | method=DELETE path='/api/v1/prompts/wyZCjyPSsEHkC5zpbMBw' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=136.07
+2025-09-25 07:37:26,953 | INFO | method=DELETE path='/api/v1/prompts/xggXE7HTxs0RHXJe2b6d' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=147.12
+2025-09-25 07:37:27,057 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=98.97
+2025-09-25 07:37:27,204 | INFO | method=DELETE path='/api/v1/templates/3608RdsfDNJp3wJ7n4Xl' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=140.12
+2025-09-25 07:37:27,352 | INFO | method=DELETE path='/api/v1/templates/X7VXHSpSo8nN3lcVmF5C' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=140.73
+2025-09-25 07:42:28,576 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2.43
+2025-09-25 07:42:28,823 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=224.04
+2025-09-25 07:45:54,487 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.70
+2025-09-25 07:45:54,607 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=99.18
+2025-09-25 07:48:30,628 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.78
+2025-09-25 07:48:30,743 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=94.00
+2025-09-25 07:54:32,027 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:54:33,918 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 07:54:39,919 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.27
+2025-09-25 07:54:40,977 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=760.39
+2025-09-25 07:54:41,126 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=143.94
+2025-09-25 07:54:41,247 | INFO | method=GET path='/api/v1/prompts/PABRg7jlaw99Cex3CykP' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.74
+2025-09-25 07:54:41,647 | INFO | method=PATCH path='/api/v1/prompts/PABRg7jlaw99Cex3CykP' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=392.92
+2025-09-25 07:54:41,949 | INFO | method=POST path='/api/v1/prompts/PABRg7jlaw99Cex3CykP/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=297.93
+2025-09-25 07:54:42,158 | INFO | method=GET path='/api/v1/prompts/PABRg7jlaw99Cex3CykP/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=200.28
+2025-09-25 07:54:43,283 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1114.87
+2025-09-25 07:54:44,335 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1049.02
+2025-09-25 07:54:44,997 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=652.57
+2025-09-25 07:54:45,116 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=110.89
+2025-09-25 07:54:45,248 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=124.12
+2025-09-25 07:54:45,261 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.11
+2025-09-25 07:54:48,350 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3080.16
+2025-09-25 07:54:48,833 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=478.55
+2025-09-25 07:54:48,954 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=112.22
+2025-09-25 07:54:49,696 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=733.62
+2025-09-25 07:54:49,787 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=81.79
+2025-09-25 07:54:51,472 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 07:54:51,514 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1723.60
+2025-09-25 07:54:51,613 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=91.79
+2025-09-25 07:54:52,486 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=864.91
+2025-09-25 07:54:52,901 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=90.86
+2025-09-25 07:54:53,282 | INFO | method=PATCH path='/api/v1/prompts/Dbguon3GZzvPeUR9xisd' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=70.28
+2025-09-25 07:54:53,356 | INFO | method=DELETE path='/api/v1/prompts/Dbguon3GZzvPeUR9xisd' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=67.75
+2025-09-25 07:54:53,797 | INFO | method=DELETE path='/api/v1/prompts/Dbguon3GZzvPeUR9xisd' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=139.13
+2025-09-25 07:54:54,264 | INFO | method=DELETE path='/api/v1/prompts/PABRg7jlaw99Cex3CykP' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=132.84
+2025-09-25 07:54:54,377 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=106.02
+2025-09-25 07:54:54,534 | INFO | method=DELETE path='/api/v1/templates/blOuipkWtQKwEJO0slQv' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=147.43
+2025-09-25 07:54:54,684 | INFO | method=DELETE path='/api/v1/templates/rxg4ybxP1Kzir6rD9kEN' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=141.41
+2025-09-25 07:59:18,228 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.70
+2025-09-25 07:59:18,524 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=276.02
+2025-09-25 08:03:09,152 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.56
+2025-09-25 08:03:09,282 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=104.61
+2025-09-25 08:07:17,480 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:07:19,407 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:07:21,283 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:10:16,873 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:10:18,218 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.03
+2025-09-25 08:10:19,240 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=731.42
+2025-09-25 08:10:19,422 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=177.11
+2025-09-25 08:10:19,511 | INFO | method=GET path='/api/v1/prompts/EQzgPabvTU1IReeMRu67' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=83.79
+2025-09-25 08:10:19,896 | INFO | method=PATCH path='/api/v1/prompts/EQzgPabvTU1IReeMRu67' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=378.16
+2025-09-25 08:10:20,220 | INFO | method=POST path='/api/v1/prompts/EQzgPabvTU1IReeMRu67/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=318.88
+2025-09-25 08:10:20,388 | INFO | method=GET path='/api/v1/prompts/EQzgPabvTU1IReeMRu67/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=159.27
+2025-09-25 08:10:21,342 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=946.12
+2025-09-25 08:10:22,564 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1213.23
+2025-09-25 08:10:23,266 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=693.83
+2025-09-25 08:10:23,363 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=87.70
+2025-09-25 08:10:23,468 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=97.69
+2025-09-25 08:10:23,475 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.19
+2025-09-25 08:10:25,071 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1590.74
+2025-09-25 08:10:25,845 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=765.29
+2025-09-25 08:10:25,995 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=142.13
+2025-09-25 08:10:26,779 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=779.46
+2025-09-25 08:10:26,894 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=105.99
+2025-09-25 08:10:29,474 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 08:10:29,512 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2609.85
+2025-09-25 08:10:29,603 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=83.39
+2025-09-25 08:10:30,647 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1035.81
+2025-09-25 08:10:31,069 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=84.27
+2025-09-25 08:10:31,450 | INFO | method=PATCH path='/api/v1/prompts/uuosm3G8manooWtvFazV' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=73.71
+2025-09-25 08:10:31,523 | INFO | method=DELETE path='/api/v1/prompts/uuosm3G8manooWtvFazV' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=65.55
+2025-09-25 08:10:32,007 | INFO | method=DELETE path='/api/v1/prompts/uuosm3G8manooWtvFazV' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=156.04
+2025-09-25 08:10:32,469 | INFO | method=DELETE path='/api/v1/prompts/EQzgPabvTU1IReeMRu67' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=151.79
+2025-09-25 08:10:32,578 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=103.32
+2025-09-25 08:10:32,726 | INFO | method=DELETE path='/api/v1/templates/2lZr9gwz6VrGD0edvfEy' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=140.80
+2025-09-25 08:10:32,887 | INFO | method=DELETE path='/api/v1/templates/mXudeT9dukvSzS2DYLLo' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=153.25
+2025-09-25 08:11:17,769 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:11:19,731 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:13:20,621 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.25
+2025-09-25 08:13:21,461 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=815.16
+2025-09-25 08:21:57,013 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:21:58,865 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:22:00,742 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:22:05,910 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.38
+2025-09-25 08:22:07,015 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=809.56
+2025-09-25 08:22:07,159 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=138.10
+2025-09-25 08:22:07,239 | INFO | method=GET path='/api/v1/prompts/PW0wX8AD9qGgKtwX28cY' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=74.14
+2025-09-25 08:22:07,568 | INFO | method=PATCH path='/api/v1/prompts/PW0wX8AD9qGgKtwX28cY' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=321.70
+2025-09-25 08:22:07,907 | INFO | method=POST path='/api/v1/prompts/PW0wX8AD9qGgKtwX28cY/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=330.77
+2025-09-25 08:22:08,078 | INFO | method=GET path='/api/v1/prompts/PW0wX8AD9qGgKtwX28cY/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=162.54
+2025-09-25 08:22:09,394 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1307.35
+2025-09-25 08:22:10,582 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1179.71
+2025-09-25 08:22:11,477 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=886.97
+2025-09-25 08:22:11,597 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.02
+2025-09-25 08:22:11,713 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=108.01
+2025-09-25 08:22:11,728 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=6.29
+2025-09-25 08:22:14,164 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2427.37
+2025-09-25 08:22:14,717 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=544.57
+2025-09-25 08:22:14,850 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=123.45
+2025-09-25 08:22:15,701 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=842.82
+2025-09-25 08:22:15,798 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=88.82
+2025-09-25 08:22:19,317 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 08:22:19,357 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3550.30
+2025-09-25 08:22:19,459 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=94.52
+2025-09-25 08:22:20,364 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=896.24
+2025-09-25 08:22:20,771 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=83.48
+2025-09-25 08:22:21,172 | INFO | method=PATCH path='/api/v1/prompts/t4CKSDgFpZUwOdycdahT' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=62.66
+2025-09-25 08:22:21,246 | INFO | method=DELETE path='/api/v1/prompts/t4CKSDgFpZUwOdycdahT' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=65.80
+2025-09-25 08:22:21,724 | INFO | method=DELETE path='/api/v1/prompts/t4CKSDgFpZUwOdycdahT' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=140.43
+2025-09-25 08:22:22,225 | INFO | method=DELETE path='/api/v1/prompts/PW0wX8AD9qGgKtwX28cY' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=178.63
+2025-09-25 08:22:22,333 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=103.06
+2025-09-25 08:22:22,484 | INFO | method=DELETE path='/api/v1/templates/tw8s9nFEhDi586B0Q4XL' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=142.77
+2025-09-25 08:22:22,642 | INFO | method=DELETE path='/api/v1/templates/yydDXH8jlXAMEJDgDhpH' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=151.51
+2025-09-25 08:30:12,571 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:30:14,431 | INFO | Firebase Admin SDK initialized successfully.
+2025-09-25 08:30:15,435 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2.96
+2025-09-25 08:30:16,590 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=846.67
+2025-09-25 08:30:16,754 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=157.70
+2025-09-25 08:30:16,836 | INFO | method=GET path='/api/v1/prompts/BI8NSXikUNV98RZcpmPa' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=75.20
+2025-09-25 08:30:17,222 | INFO | method=PATCH path='/api/v1/prompts/BI8NSXikUNV98RZcpmPa' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=377.99
+2025-09-25 08:30:17,538 | INFO | method=POST path='/api/v1/prompts/BI8NSXikUNV98RZcpmPa/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=307.23
+2025-09-25 08:30:17,684 | INFO | method=GET path='/api/v1/prompts/BI8NSXikUNV98RZcpmPa/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=137.51
+2025-09-25 08:30:18,783 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1091.12
+2025-09-25 08:30:19,721 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=929.17
+2025-09-25 08:30:20,289 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=560.09
+2025-09-25 08:30:20,488 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=190.13
+2025-09-25 08:30:20,640 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=144.57
+2025-09-25 08:30:20,653 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.67
+2025-09-25 08:30:21,984 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1323.68
+2025-09-25 08:30:22,871 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=877.40
+2025-09-25 08:30:22,999 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=120.08
+2025-09-25 08:30:23,744 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=736.37
+2025-09-25 08:30:23,834 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=81.35
+2025-09-25 08:30:25,112 | INFO | HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 08:30:25,151 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1308.52
+2025-09-25 08:30:25,231 | INFO | method=POST path='/api/v1/users/1rmdZtIWKoZz5TMHpFAxjp9eGkJ2/keys' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=71.95
+2025-09-25 08:30:26,218 | INFO | method=POST path='/api/v1/users/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=978.15
+2025-09-25 08:30:26,626 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=83.87
+2025-09-25 08:30:27,054 | INFO | method=PATCH path='/api/v1/prompts/dfR9DLjTiHlVBhkqvfCZ' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=65.63
+2025-09-25 08:30:27,117 | INFO | method=DELETE path='/api/v1/prompts/dfR9DLjTiHlVBhkqvfCZ' status_code=403 user_id='anonymous' client_ip='127.0.0.1' latency_ms=57.40
+2025-09-25 08:30:27,614 | INFO | method=DELETE path='/api/v1/prompts/dfR9DLjTiHlVBhkqvfCZ' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=193.49
+2025-09-25 08:30:28,127 | INFO | method=DELETE path='/api/v1/prompts/BI8NSXikUNV98RZcpmPa' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=175.16
+2025-09-25 08:30:28,235 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=102.16
+2025-09-25 08:30:28,407 | INFO | method=DELETE path='/api/v1/templates/25fXDXEVRkiWhrZ2XGga' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=164.63
+2025-09-25 08:30:28,569 | INFO | method=DELETE path='/api/v1/templates/HjcxI7HQULUS2o3TVDeZ' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=154.70
+2025-09-25 08:35:03,143 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.92
+2025-09-25 08:35:03,379 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=213.21
+2025-09-25 08:39:09,629 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.04
+2025-09-25 08:39:09,974 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=322.28

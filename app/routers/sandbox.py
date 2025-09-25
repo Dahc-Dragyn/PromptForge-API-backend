@@ -1,5 +1,5 @@
 # app/routers/sandbox.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status # Add status
 from typing import Dict, Any
 from app.services import llm_service, security_service
 from app.schemas.prompt import (
@@ -10,6 +10,7 @@ from app.schemas.prompt import (
     RecommendResponse,
     SandboxRequest,
     SandboxResponse,
+    PromptTemplate # Import the correct response model
 )
 
 router = APIRouter(
@@ -19,14 +20,19 @@ router = APIRouter(
 @router.post("/compose", response_model=PromptComposeResponse)
 async def compose_prompt_from_template(request: PromptComposeRequest):
     """(PUBLIC) Composes a final prompt string from a template and its variables."""
-    # FIX: Pass the entire 'request' object to the service function as expected.
     return await llm_service.compose_prompt(request)
 
-@router.post("/generate-template", response_model=PromptComposeResponse)
-async def generate_template_from_prompt(request: TemplateGenerateRequest):
-    """(PUBLIC) Generates a reusable template from a given raw prompt."""
-    generated_template = await llm_service.generate_template_from_prompt(request)
-    return PromptComposeResponse(composed_prompt=generated_template) # Corrected response model usage
+# FIX: Correct the response_model, status_code, and the service function call.
+@router.post("/generate-template", response_model=PromptTemplate, status_code=status.HTTP_201_CREATED)
+async def generate_template_from_prompt(
+    request: TemplateGenerateRequest,
+    # Add the user dependency, as creating a template requires an owner.
+    current_user: Dict[str, Any] = Depends(security_service.get_current_user)
+):
+    """(SECURE) Generates and stores a new template using an LLM."""
+    # Call the correct function name from the llm_service.
+    created_template = await llm_service.generate_and_store_template(request, current_user)
+    return created_template
 
 @router.post("/recommend-templates", response_model=RecommendResponse)
 async def recommend_templates_for_prompt(request: RecommendRequest):

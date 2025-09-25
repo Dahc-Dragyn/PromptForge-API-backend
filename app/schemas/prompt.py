@@ -1,6 +1,6 @@
 # app/schemas/prompt.py
 from enum import Enum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from typing import List, Optional, Any, Dict
 
@@ -17,8 +17,11 @@ class PromptVersion(PromptVersionBase):
     version_number: int
     created_at: datetime
     commit_message: Optional[str] = None
-    class Config:
-        from_attributes = True
+    # FIX: Explicitly serialize datetime to prevent environment-specific errors.
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 # --- Main Prompt Schemas ---
 class PromptBase(BaseModel):
@@ -32,8 +35,15 @@ class Prompt(PromptBase):
     id: str
     created_at: datetime
     latest_version: int
-    class Config:
-        from_attributes = True
+    
+    # FIX: This explicitly tells Pydantic how to format datetimes into strings,
+    # guaranteeing valid JSON and fixing the jq parse error in any environment.
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={
+            datetime: lambda v: v.isoformat()
+        }
+    )
 
 class PromptUpdate(BaseModel):
     name: Optional[str] = None
@@ -51,8 +61,11 @@ class PromptExecution(BaseModel):
     latency_ms: int
     cost: float
     rating: Optional[int] = Field(None, ge=1, le=5)
-    class Config:
-        from_attributes = True
+    # FIX: Explicitly serialize datetime to prevent environment-specific errors.
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 class PromptExecuteRequest(BaseModel):
     prompt_text: str = Field(..., example="Explain quantum computing in simple terms.")
@@ -70,7 +83,6 @@ class ManagedExecutionRequest(BaseModel):
 class UserAPIKey(BaseModel):
     provider: str = Field(..., example="openai")
     api_key: str = Field(..., example="sk-...")
-
 
 # --- APE Schemas ---
 class APEExample(BaseModel):
@@ -146,14 +158,16 @@ class PromptTemplate(PromptTemplateBase):
     id: str
     created_at: datetime
     version: int = 1
-    class Config:
-        from_attributes = True
+    # FIX: Explicitly serialize datetime to prevent environment-specific errors.
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 class TemplateGenerateRequest(BaseModel):
     style_description: str = Field(..., example="A formal persona for summarizing legal documents.")
     tags: Optional[List[str]] = Field(None)
 
-# FIX: Redefine this schema to match the endpoint logic and test script.
 class PromptComposeRequest(BaseModel):
     template_text: str
     variables: Dict[str, str]
@@ -223,8 +237,7 @@ class PromptSummary(BaseModel):
     name: str
     average_rating: Optional[float] = None
     rating_count: int = 0
-    class Config:
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 class RecentActivity(BaseModel):
     id: str
@@ -233,8 +246,11 @@ class RecentActivity(BaseModel):
     version: int
     commit_message: str
     created_at: datetime
-    class Config:
-        populate_by_name = True
+    # FIX: Explicitly serialize datetime while preserving existing config.
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 class RatingCreate(BaseModel):
     prompt_id: str

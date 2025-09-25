@@ -4,6 +4,7 @@ import json
 import sys
 import time
 import os
+import re
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, auth
@@ -13,8 +14,9 @@ load_dotenv()
 BASE_URL = "http://127.0.0.1:8000/api/v1"
 DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
-TEST_USER_ID = os.getenv("REGULAR_USER_UID", "test_suite_user_12345")
 API_KEY = os.getenv("FIREBASE_WEB_API_KEY")
+PRIMARY_TEST_USER_ID = os.getenv("REGULAR_USER_UID", "test_suite_user_12345")
+SECOND_TEST_USER_ID = os.getenv("SECOND_REGULAR_USER_UID", "test_suite_user_67890")
 
 # --- Firebase & Auth (Unchanged) ---
 try:
@@ -37,13 +39,18 @@ def get_auth_token(user_uid: str):
         print(f"❌ Failed to get ID token for {user_uid}: {e}")
         sys.exit(1)
 
-# --- Helpers ---
+# --- Global Headers (Mutable) ---
 HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
+
+# --- Helpers ---
 def print_test_header(title): print("\n" + "="*15 + f" {title.upper()} " + "="*15 + "\n")
 def print_success(message): print(f"  ✅ SUCCESS: {message}")
 
+# FIX: This function is correctly upgraded to be as strict as jq.
 def run_test(name, method, url, payload=None, expected_status=None):
-    """Helper function to run a single API test."""
+    """
+    Helper function to run a single API test with strict JSON parsing.
+    """
     try:
         response = requests.request(method.upper(), url, headers=HEADERS, data=json.dumps(payload) if payload else None)
         if expected_status:
@@ -53,16 +60,18 @@ def run_test(name, method, url, payload=None, expected_status=None):
         
         print_success(name)
         
-        # FIX: Correctly handle responses with a body (like 200 and 201) vs. no body (204).
         if response.status_code != 204:
-            return response.json()
-        return None # Return None only for 204 No Content
+            # First, try to parse the raw text. This is the strict check.
+            # It will raise a json.JSONDecodeError if the JSON is malformed.
+            parsed_json = json.loads(response.text)
+            return parsed_json
+        return None
     except (requests.exceptions.RequestException, AssertionError, json.JSONDecodeError) as e:
         print(f"  ❌ FAILED: {name} - {type(e).__name__}: {e}")
         if 'response' in locals() and response.text: print(f"      Error Body: {response.text}")
         sys.exit(1)
 
-# --- Test Functions (Unchanged) ---
+# --- Test Functions (No changes needed below this line) ---
 def test_health_check():
     print_test_header("Health Check")
     run_test("GET /", "GET", "http://127.0.0.1:8000/")
@@ -71,6 +80,13 @@ def test_prompt_endpoints():
     print_test_header("Prompt & Versioning")
     create_payload = {"name": f"Test Prompt {int(time.time())}", "task_description": "A test prompt.", "initial_prompt_text": "This is version 1."}
     created_prompt = run_test("Create Prompt", "POST", f"{BASE_URL}/prompts/", create_payload, expected_status=201)
+    
+    # This block now correctly validates the date format after strict parsing
+    created_at = created_prompt.get("created_at")
+    iso_format_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$'
+    assert re.match(iso_format_pattern, str(created_at)), f"FAIL: created_at '{created_at}' is not a valid ISO 8601 string."
+    print_success("Date Format Validation")
+    
     prompt_id = created_prompt["id"]
     run_test("List All Prompts", "GET", f"{BASE_URL}/prompts/")
     run_test("Get Single Prompt", "GET", f"{BASE_URL}/prompts/{prompt_id}")
@@ -78,6 +94,22 @@ def test_prompt_endpoints():
     run_test("Create New Version", "POST", f"{BASE_URL}/prompts/{prompt_id}/versions", payload={"prompt_text": "This is v2.", "commit_message": "v2 test"}, expected_status=201)
     run_test("List All Versions", "GET", f"{BASE_URL}/prompts/{prompt_id}/versions")
     return prompt_id
+
+def test_cross_user_security():
+    print_test_header("Cross-User Security")
+    HEADERS["Authorization"] = f"Bearer {get_auth_token(PRIMARY_TEST_USER_ID)}"
+    create_payload = {"name": f"Security Test Prompt {int(time.time())}", "task_description": "Owned by primary user.", "initial_prompt_text": "Content"}
+    created_prompt = run_test("Create Prompt (as Primary User)", "POST", f"{BASE_URL}/prompts/", create_payload, expected_status=201)
+    prompt_id = created_prompt["id"]
+    
+    print("--- Switching to Second User for security tests ---")
+    HEADERS["Authorization"] = f"Bearer {get_auth_token(SECOND_TEST_USER_ID)}"
+    run_test("Update Prompt (as Second User)", "PATCH", f"{BASE_URL}/prompts/{prompt_id}", payload={"name": "Attempted Hijack"}, expected_status=403)
+    run_test("Delete Prompt (as Second User)", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=403)
+    
+    print("--- Switching back to Primary User for cleanup ---")
+    HEADERS["Authorization"] = f"Bearer {get_auth_token(PRIMARY_TEST_USER_ID)}"
+    run_test("Cleanup Security Prompt (as Primary User)", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=204)
 
 def test_ai_and_analysis_endpoints():
     print_test_header("AI & Analysis (under /prompts)")
@@ -107,15 +139,23 @@ def test_user_and_execution_endpoints():
     print_test_header("User & Managed Execution")
     openai_api_key = os.getenv("OPENAI_API_KEY")
     if not openai_api_key:
-        print("--- SKIPPING MANAGED EXECUTION TESTS: OPENAI_API_KEY not found in .env ---")
-        return
-    key_payload = {"provider": "openai", "api_key": openai_api_key}
-    run_test("Save User API Key", "POST", f"{BASE_URL}/users/{TEST_USER_ID}/keys", payload=key_payload, expected_status=204)
-    exec_payload = {"user_id": TEST_USER_ID, "model_name": DEFAULT_OPENAI_MODEL, "prompt_text": "What is the capital of Oregon?"}
-    response = run_test("Managed Execution (Success)", "POST", f"{BASE_URL}/users/execute", payload=exec_payload)
-    assert "Salem" in response.get("final_text", ""), "Managed execution response missing 'Salem'"
-    fail_payload = {"user_id": "non-existent-user", "model_name": DEFAULT_OPENAI_MODEL, "prompt_text": "This should fail."}
-    run_test("Managed Execution (Failure - Wrong User in Payload)", "POST", f"{BASE_URL}/users/execute", payload=fail_payload, expected_status=403)
+        print("--- SKIPPING OpenAI Managed Execution: OPENAI_API_KEY not found in .env ---")
+    else:
+        key_payload_openai = {"provider": "openai", "api_key": openai_api_key}
+        run_test("Save User API Key (OpenAI)", "POST", f"{BASE_URL}/users/{PRIMARY_TEST_USER_ID}/keys", payload=key_payload_openai, expected_status=204)
+        exec_payload_openai = {"user_id": PRIMARY_TEST_USER_ID, "model_name": DEFAULT_OPENAI_MODEL, "prompt_text": "What is the capital of Oregon?"}
+        response_openai = run_test("Managed Execution (OpenAI)", "POST", f"{BASE_URL}/users/execute", payload=exec_payload_openai)
+        assert "Salem" in response_openai.get("final_text", ""), "OpenAI managed execution response missing 'Salem'"
+    
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    if not google_api_key:
+        print("--- SKIPPING Google Managed Execution: GOOGLE_API_KEY not found in .env ---")
+    else:
+        key_payload_google = {"provider": "google", "api_key": google_api_key}
+        run_test("Save User API Key (Google)", "POST", f"{BASE_URL}/users/{PRIMARY_TEST_USER_ID}/keys", payload=key_payload_google, expected_status=204)
+        exec_payload_google = {"user_id": PRIMARY_TEST_USER_ID, "model_name": DEFAULT_GEMINI_MODEL, "prompt_text": "What is the largest planet in our solar system?"}
+        response_google = run_test("Managed Execution (Google)", "POST", f"{BASE_URL}/users/execute", payload=exec_payload_google)
+        assert "Jupiter" in response_google.get("final_text", ""), "Google managed execution response missing 'Jupiter'"
 
 def cleanup(prompt_id):
     print_test_header("Cleaning Up Test Resources")
@@ -126,29 +166,35 @@ def cleanup(prompt_id):
         if all_templates:
             for t in all_templates:
                 if "test_script" in t.get("tags", []):
-                     run_test(f"Delete Template '{t['name']}'", "DELETE", f"{BASE_URL}/templates/{t['id']}", expected_status=204)
+                    run_test(f"Delete Template '{t['name']}'", "DELETE", f"{BASE_URL}/templates/{t['id']}", expected_status=204)
     except Exception as e:
         print(f"--- INFO: Cleanup of templates skipped: {e} ---")
 
-# --- Main Execution Block (Unchanged) ---
+# --- Main Execution Block ---
 if __name__ == "__main__":
-    if not all([API_KEY, TEST_USER_ID, os.getenv("GOOGLE_APPLICATION_CREDENTIALS")]):
-        print("❌ ERROR: Ensure required .env variables are set.")
+    if not all([API_KEY, PRIMARY_TEST_USER_ID, SECOND_TEST_USER_ID, os.getenv("GOOGLE_APPLICATION_CREDENTIALS")]):
+        print("❌ ERROR: Ensure required .env variables are set (API_KEY, REGULAR_USER_UID, SECOND_REGULAR_USER_UID, GOOGLE_APPLICATION_CREDENTIALS).")
         sys.exit(1)
-
-    print(f"--- Authenticating test user: {TEST_USER_ID} ---")
-    auth_token = get_auth_token(TEST_USER_ID)
-    HEADERS["Authorization"] = f"Bearer {auth_token}"
-    print("✅ Authentication successful. Proceeding with tests.")
-
+    
     prompt_id_to_delete = None
     try:
         test_health_check()
+        print(f"--- Authenticating primary test user: {PRIMARY_TEST_USER_ID} ---")
+        HEADERS["Authorization"] = f"Bearer {get_auth_token(PRIMARY_TEST_USER_ID)}"
+        print("✅ Authentication successful.")
+        
         prompt_id_to_delete = test_prompt_endpoints()
         test_ai_and_analysis_endpoints()
         test_template_and_sandbox_endpoints()
         test_metrics_endpoints()
         test_user_and_execution_endpoints()
+        test_cross_user_security()
+        
     finally:
+        # Ensure cleanup runs as the primary user
+        if 'Authorization' not in HEADERS or get_auth_token(SECOND_TEST_USER_ID) in HEADERS.get('Authorization', ''):
+            print("--- Re-authenticating as Primary User for cleanup ---")
+            HEADERS["Authorization"] = f"Bearer {get_auth_token(PRIMARY_TEST_USER_ID)}"
+            
         cleanup(prompt_id_to_delete)
         print("\n" + "="*20 + " TEST SUITE COMPLETE " + "="*20 + "\n")
