@@ -69,7 +69,7 @@ class PromptExecution(BaseModel):
 
 class PromptExecuteRequest(BaseModel):
     prompt_text: str = Field(..., example="Explain quantum computing in simple terms.")
-    model: str = Field(..., example="gemini-1.5-pro-latest")
+    model: str = Field(..., example="gemini-2.5-flash-lite")
     variables: Dict[str, Any] = Field({}, description="Key-value pairs for variables.")
 
 PromptExecuteResponse = PromptExecution

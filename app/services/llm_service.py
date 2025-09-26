@@ -25,7 +25,7 @@ from app.schemas.prompt import (
 from app.core.db import db
 
 # --- Constants & Configuration ---
-DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash'
+DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
 API_CACHE_COLLECTION = "api_cache"
 CACHE_DURATION_MINUTES = 60
 
