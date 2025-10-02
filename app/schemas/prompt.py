@@ -69,6 +69,7 @@ class PromptExecution(BaseModel):
 
 class PromptExecuteRequest(BaseModel):
     prompt_text: str = Field(..., example="Explain quantum computing in simple terms.")
+    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     model: str = Field(..., example="gemini-2.5-flash-lite")
     variables: Dict[str, Any] = Field({}, description="Key-value pairs for variables.")
 
@@ -179,6 +180,7 @@ class PromptComposeResponse(BaseModel):
 # --- Sandbox & Benchmark Schemas ---
 class BenchmarkRequest(BaseModel):
     prompt_text: str = Field(..., example="Write a short story about a robot who discovers music.")
+    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     models: List[str] = Field(..., example=["gemini-2.5-flash-lite", "gpt-4o-mini"])
 
 class BenchmarkResult(BaseModel):
@@ -198,6 +200,7 @@ class SandboxPromptInput(BaseModel):
 class SandboxRequest(BaseModel):
     prompts: List[SandboxPromptInput]
     input_text: str
+    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     model: str = Field(..., example="gemini-2.5-flash-lite")
 
 class SandboxResult(BaseModel):
@@ -222,6 +225,7 @@ class RecommendResponse(BaseModel):
 
 # --- Metrics & Analytics Schemas ---
 class CostCalculationRequest(BaseModel):
+    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     model_name: str = Field(..., example="gemini-2.5-flash-lite")
     input_token_count: int = Field(..., example=1000)
     output_token_count: int = Field(..., example=500)

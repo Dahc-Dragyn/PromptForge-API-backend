@@ -12,7 +12,7 @@ from firebase_admin import credentials, auth
 # --- Configuration (Unchanged) ---
 load_dotenv()
 BASE_URL = "http://127.0.0.1:8000/api/v1"
-DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash-lite"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 API_KEY = os.getenv("FIREBASE_WEB_API_KEY")
 PRIMARY_TEST_USER_ID = os.getenv("REGULAR_USER_UID", "test_suite_user_12345")
@@ -46,7 +46,6 @@ HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
 def print_test_header(title): print("\n" + "="*15 + f" {title.upper()} " + "="*15 + "\n")
 def print_success(message): print(f"  ✅ SUCCESS: {message}")
 
-# FIX: This function is correctly upgraded to be as strict as jq.
 def run_test(name, method, url, payload=None, expected_status=None):
     """
     Helper function to run a single API test with strict JSON parsing.
@@ -61,8 +60,6 @@ def run_test(name, method, url, payload=None, expected_status=None):
         print_success(name)
         
         if response.status_code != 204:
-            # First, try to parse the raw text. This is the strict check.
-            # It will raise a json.JSONDecodeError if the JSON is malformed.
             parsed_json = json.loads(response.text)
             return parsed_json
         return None
@@ -71,7 +68,7 @@ def run_test(name, method, url, payload=None, expected_status=None):
         if 'response' in locals() and response.text: print(f"      Error Body: {response.text}")
         sys.exit(1)
 
-# --- Test Functions (No changes needed below this line) ---
+# --- Test Functions (Unchanged sections are collapsed for brevity) ---
 def test_health_check():
     print_test_header("Health Check")
     run_test("GET /", "GET", "http://127.0.0.1:8000/")
@@ -81,7 +78,6 @@ def test_prompt_endpoints():
     create_payload = {"name": f"Test Prompt {int(time.time())}", "task_description": "A test prompt.", "initial_prompt_text": "This is version 1."}
     created_prompt = run_test("Create Prompt", "POST", f"{BASE_URL}/prompts/", create_payload, expected_status=201)
     
-    # This block now correctly validates the date format after strict parsing
     created_at = created_prompt.get("created_at")
     iso_format_pattern = r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$'
     assert re.match(iso_format_pattern, str(created_at)), f"FAIL: created_at '{created_at}' is not a valid ISO 8601 string."
@@ -96,6 +92,7 @@ def test_prompt_endpoints():
     return prompt_id
 
 def test_cross_user_security():
+    # ... (Unchanged)
     print_test_header("Cross-User Security")
     HEADERS["Authorization"] = f"Bearer {get_auth_token(PRIMARY_TEST_USER_ID)}"
     create_payload = {"name": f"Security Test Prompt {int(time.time())}", "task_description": "Owned by primary user.", "initial_prompt_text": "Content"}
@@ -112,6 +109,7 @@ def test_cross_user_security():
     run_test("Cleanup Security Prompt (as Primary User)", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=204)
 
 def test_ai_and_analysis_endpoints():
+    # ... (Unchanged)
     print_test_header("AI & Analysis (under /prompts)")
     execute_payload = {"prompt_text": "Summarize Hamlet in one sentence.", "model": DEFAULT_GEMINI_MODEL, "variables": {}}
     response = run_test("Execute Prompt (Platform Key)", "POST", f"{BASE_URL}/prompts/execute", payload=execute_payload)
@@ -119,7 +117,9 @@ def test_ai_and_analysis_endpoints():
     run_test("Diagnose Prompt", "POST", f"{BASE_URL}/prompts/diagnose", payload={"prompt_text": "write code"})
     run_test("Breakdown Prompt", "POST", f"{BASE_URL}/prompts/breakdown", payload={"prompt_text": "You are a helpful assistant."})
 
+
 def test_template_and_sandbox_endpoints():
+    # ... (Unchanged)
     print_test_header("Templates & Sandbox")
     unique_suffix = str(int(time.time()))
     template_payload = {"name": f"Test Persona: Pirate {unique_suffix}", "description": "A test persona.", "content": "You are a pirate who loves treasure.", "tags": ["persona", "pirate", "test_script"]}
@@ -130,12 +130,45 @@ def test_template_and_sandbox_endpoints():
     run_test("AI Generate Template", "POST", f"{BASE_URL}/sandbox/generate-template", payload=ai_gen_payload, expected_status=201)
     run_test("Recommend Template", "POST", f"{BASE_URL}/sandbox/recommend-templates", payload={"task_description": "I need to write a professional email."})
 
+
+# --- FINALIZED METRICS TEST FUNCTION ---
 def test_metrics_endpoints():
     print_test_header("Metrics Endpoints")
-    run_test("Get All Prompt Metrics", "GET", f"{BASE_URL}/metrics/prompts/all")
+    run_test("Get All Prompt Metrics (Initial)", "GET", f"{BASE_URL}/metrics/prompts/all")
     run_test("Get Recent Activity", "GET", f"{BASE_URL}/metrics/activity/recent")
 
+    # --- Full Rating Lifecycle Test ---
+    print("--- Testing Full Rating Lifecycle ---")
+    
+    # 1. Create a temporary prompt to rate
+    create_payload = {"name": f"Rating Lifecycle Test {int(time.time())}", "task_description": "A prompt to test rating persistence.", "initial_prompt_text": "Version 1 text."}
+    created_prompt = run_test("Create Prompt for Rating Test", "POST", f"{BASE_URL}/prompts/", create_payload, expected_status=201)
+    prompt_id = created_prompt["id"]
+
+    # 2. Rate version 1 of the new prompt with 5 stars
+    rating_payload = {"prompt_id": prompt_id, "version_number": 1, "rating": 5}
+    run_test("Rate Prompt (5 stars)", "POST", f"{BASE_URL}/metrics/rate", payload=rating_payload, expected_status=201)
+
+    # 3. Fetch all prompts again to verify the rating "stuck"
+    all_prompts = run_test("Verify Rating Persistence", "GET", f"{BASE_URL}/prompts/")
+    
+    # 4. Find our prompt and assert its values
+    found_prompt = next((p for p in all_prompts if p['id'] == prompt_id), None)
+    assert found_prompt, f"Rated prompt with ID {prompt_id} not found in list."
+    
+    rating_count = found_prompt.get('rating_count')
+    avg_rating = found_prompt.get('average_rating')
+
+    assert rating_count == 1, f"Expected rating_count to be 1, but got {rating_count}"
+    assert avg_rating == 5.0, f"Expected average_rating to be 5.0, but got {avg_rating}"
+    print_success("Rating count (1) and average (5.0) are correct")
+
+    # 5. Clean up the temporary prompt
+    run_test(f"Cleanup Rating Lifecycle Prompt {prompt_id}", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=204)
+
+
 def test_user_and_execution_endpoints():
+    # ... (Unchanged)
     print_test_header("User & Managed Execution")
     openai_api_key = os.getenv("OPENAI_API_KEY")
     if not openai_api_key:
@@ -157,7 +190,9 @@ def test_user_and_execution_endpoints():
         response_google = run_test("Managed Execution (Google)", "POST", f"{BASE_URL}/users/execute", payload=exec_payload_google)
         assert "Jupiter" in response_google.get("final_text", ""), "Google managed execution response missing 'Jupiter'"
 
+
 def cleanup(prompt_id):
+    # ... (Unchanged)
     print_test_header("Cleaning Up Test Resources")
     if prompt_id:
         run_test(f"Delete Prompt {prompt_id}", "DELETE", f"{BASE_URL}/prompts/{prompt_id}", expected_status=204)
@@ -170,7 +205,8 @@ def cleanup(prompt_id):
     except Exception as e:
         print(f"--- INFO: Cleanup of templates skipped: {e} ---")
 
-# --- Main Execution Block ---
+
+# --- Main Execution Block (Unchanged) ---
 if __name__ == "__main__":
     if not all([API_KEY, PRIMARY_TEST_USER_ID, SECOND_TEST_USER_ID, os.getenv("GOOGLE_APPLICATION_CREDENTIALS")]):
         print("❌ ERROR: Ensure required .env variables are set (API_KEY, REGULAR_USER_UID, SECOND_REGULAR_USER_UID, GOOGLE_APPLICATION_CREDENTIALS).")
@@ -191,7 +227,6 @@ if __name__ == "__main__":
         test_cross_user_security()
         
     finally:
-        # Ensure cleanup runs as the primary user
         if 'Authorization' not in HEADERS or get_auth_token(SECOND_TEST_USER_ID) in HEADERS.get('Authorization', ''):
             print("--- Re-authenticating as Primary User for cleanup ---")
             HEADERS["Authorization"] = f"Bearer {get_auth_token(PRIMARY_TEST_USER_ID)}"

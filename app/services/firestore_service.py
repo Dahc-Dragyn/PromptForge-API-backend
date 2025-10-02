@@ -6,6 +6,7 @@ from google.cloud.firestore_v1.async_transaction import AsyncTransaction
 from google.cloud.firestore_v1.base_query import FieldFilter
 from google.cloud import firestore
 from typing import Optional, Dict, Any, List
+import asyncio
 
 from app.core.db import db
 from app.schemas.prompt import (
@@ -19,13 +20,13 @@ from app.schemas.prompt import (
 )
 from app.services.security_service import encrypt_key, decrypt_key
 
-# --- Constants ---
+# --- Constants (Unchanged) ---
 PROMPTS_COLLECTION = "prompts"
 PROMPT_TEMPLATES_COLLECTION = "prompt_templates"
 USERS_COLLECTION = "users"
 RATINGS_COLLECTION = "ratings"
 
-# --- Helper Functions ---
+# --- Helper Functions (Unchanged) ---
 def _get_user_info(user: Dict[str, Any]) -> Dict[str, Any]:
     """Extracts and formats user info from the decoded Firebase token."""
     return {
@@ -46,9 +47,8 @@ def _serialize_datetimes(data: Dict[str, Any]) -> Dict[str, Any]:
             data[key] = value.isoformat()
     return data
 
-# --- Prompt Functions ---
+# --- Prompt and Template Functions ---
 async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
-    """Creates a new prompt, ensuring the owner is saved as a nested object."""
     batch = db.batch()
     prompt_ref = db.collection(PROMPTS_COLLECTION).document()
     owner_info = _get_user_info(user)
@@ -60,7 +60,9 @@ async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
         "created_at": creation_time,
         "latest_version": 1,
         "owner": owner_info,
-        "deleted_at": None
+        "deleted_at": None,
+        "average_rating": 0,
+        "rating_count": 0
     }
     batch.set(prompt_ref, prompt_doc_data)
 
@@ -79,23 +81,36 @@ async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
     response_data = prompt_doc_data.copy()
     response_data.pop("deleted_at")
     
-    # FIX: Use the serialization helper for consistency.
     return _serialize_datetimes({"id": prompt_ref.id, **response_data})
 
+# --- FIXED list_prompts function ---
 async def list_prompts() -> list[dict]:
+    """
+    Fetches all non-deleted prompts and ensures rating fields
+    are present before returning.
+    """
     prompts_list = []
+    # Filter for non-deleted prompts
     query = db.collection(PROMPTS_COLLECTION).where(filter=FieldFilter("deleted_at", "==", None))
     stream = query.stream()
     async for doc in stream:
         try:
             prompt_data = doc.to_dict()
             prompt_data["id"] = doc.id
-            # FIX: Serialize datetimes before appending.
+            
+            # --- DEFENSIVE FIX: Ensure rating fields always exist, defaulting to 0 ---
+            if "average_rating" not in prompt_data:
+                prompt_data["average_rating"] = 0.0
+            if "rating_count" not in prompt_data:
+                prompt_data["rating_count"] = 0
+                
             prompts_list.append(_serialize_datetimes(prompt_data))
         except Exception as e:
+            # Logs a warning and skips the malformed document
             logging.warning(f"--- WARNING: Skipping malformed document {doc.id} in 'prompts': {e}")
     return prompts_list
 
+# --- All other functions remain exactly the same as provided ---
 async def get_prompt_by_id(prompt_id: str) -> dict | None:
     doc_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id)
     doc = await doc_ref.get()
@@ -104,7 +119,6 @@ async def get_prompt_by_id(prompt_id: str) -> dict | None:
         if prompt_data.get("deleted_at") is not None:
             return None
         prompt_data["id"] = doc.id
-        # FIX: Serialize datetimes before returning.
         return _serialize_datetimes(prompt_data)
     return None
 
@@ -138,7 +152,6 @@ async def create_new_prompt_version(transaction: AsyncTransaction, prompt_id: st
     }
     transaction.set(version_ref, new_version_data)
     transaction.update(prompt_ref, {"latest_version": new_version_number})
-    # FIX: Serialize datetimes before returning.
     return _serialize_datetimes({"id": version_ref.id, **new_version_data})
 
 async def list_prompt_versions(prompt_id: str) -> list[dict]:
@@ -148,7 +161,6 @@ async def list_prompt_versions(prompt_id: str) -> list[dict]:
     async for doc in stream:
         version_data = doc.to_dict()
         version_data["id"] = doc.id
-        # FIX: Serialize datetimes before appending.
         versions_list.append(_serialize_datetimes(version_data))
     return versions_list
 
@@ -160,7 +172,6 @@ async def create_template(template_data: PromptTemplateCreate, user: Dict) -> di
     data["owner"] = owner_info
     doc_ref = db.collection(PROMPT_TEMPLATES_COLLECTION).document()
     await doc_ref.set(data)
-    # FIX: Serialize datetimes before returning.
     return _serialize_datetimes({"id": doc_ref.id, **data})
 
 async def list_templates(tag: Optional[str] = None) -> list[dict]:
@@ -176,7 +187,6 @@ async def list_templates(tag: Optional[str] = None) -> list[dict]:
     return templates_list
 
 async def list_templates_by_tags(tags: list[str]) -> list[dict]:
-    """Retrieves all templates that contain any of the specified tags."""
     templates_list = []
     if not tags:
         return templates_list
@@ -218,7 +228,6 @@ async def get_recent_activity(limit: int = 10) -> List[Dict[str, Any]]:
         version_data = doc.to_dict()
         prompt_ref = doc.reference.parent.parent
         prompt_doc = await prompt_ref.get()
-        # FIX: Correct the indentation of this entire block.
         if prompt_doc.exists and prompt_doc.to_dict().get("deleted_at") is None:
             prompt_name = prompt_doc.to_dict().get('name', 'N/A')
             activity_item = {
@@ -227,6 +236,42 @@ async def get_recent_activity(limit: int = 10) -> List[Dict[str, Any]]:
                 "commit_message": version_data.get('commit_message', 'N/A'),
                 "created_at": version_data.get('created_at')
             }
-            # FIX: Serialize datetimes before appending.
             activity_list.append(_serialize_datetimes(activity_item))
     return activity_list
+
+@firestore.async_transactional
+async def create_or_update_rating(
+    transaction: AsyncTransaction,
+    prompt_id: str,
+    version_number: int,
+    rating: int,
+    user_id: str
+):
+    prompt_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id)
+    prompt_snapshot = await prompt_ref.get(transaction=transaction)
+
+    if not prompt_snapshot.exists:
+        raise FileNotFoundError(f"Prompt with ID {prompt_id} not found.")
+
+    rating_id = f"{prompt_id}_v{version_number}_{user_id}"
+    rating_ref = db.collection(RATINGS_COLLECTION).document(rating_id)
+
+    transaction.set(rating_ref, {
+        "prompt_id": prompt_id,
+        "version_number": version_number,
+        "user_id": user_id,
+        "rating": rating,
+        "created_at": datetime.now(timezone.utc)
+    })
+
+    prompt_data = prompt_snapshot.to_dict()
+    old_rating_count = prompt_data.get("rating_count", 0)
+    old_avg_rating = prompt_data.get("average_rating", 0.0)
+    
+    new_rating_count = old_rating_count + 1
+    new_avg_rating = ((old_avg_rating * old_rating_count) + rating) / new_rating_count
+
+    transaction.update(prompt_ref, {
+        "rating_count": new_rating_count,
+        "average_rating": new_avg_rating
+    })

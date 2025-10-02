@@ -7,7 +7,7 @@ import hashlib
 import logging
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
-from typing import Dict, Any, List # FIX: Import Dict, Any, List
+from typing import Dict, Any, List
 
 import google.generativeai as genai
 from openai import AsyncOpenAI
@@ -25,7 +25,8 @@ from app.schemas.prompt import (
 from app.core.db import db
 
 # --- Constants & Configuration ---
-DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash'
+# FIX: Use the explicit cheapest Gemini model ID as confirmed by documentation.
+DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite'
 API_CACHE_COLLECTION = "api_cache"
 CACHE_DURATION_MINUTES = 60
 
