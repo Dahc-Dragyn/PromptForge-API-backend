@@ -20,15 +20,14 @@ from app.schemas.prompt import (
 )
 from app.services.security_service import encrypt_key, decrypt_key
 
-# --- Constants (Unchanged) ---
+# --- Constants ---
 PROMPTS_COLLECTION = "prompts"
 PROMPT_TEMPLATES_COLLECTION = "prompt_templates"
 USERS_COLLECTION = "users"
 RATINGS_COLLECTION = "ratings"
 
-# --- Helper Functions (Unchanged) ---
+# --- Helper Functions ---
 def _get_user_info(user: Dict[str, Any]) -> Dict[str, Any]:
-    """Extracts and formats user info from the decoded Firebase token."""
     return {
         "uid": user["uid"],
         "name": user.get("name", "Unknown User"),
@@ -36,10 +35,6 @@ def _get_user_info(user: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 def _serialize_datetimes(data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    FIX: Iterates through a dictionary and converts any datetime objects
-    to ISO 8601 strings to ensure consistent JSON serialization.
-    """
     if data is None:
         return None
     for key, value in data.items():
@@ -83,14 +78,8 @@ async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
     
     return _serialize_datetimes({"id": prompt_ref.id, **response_data})
 
-# --- FIXED list_prompts function ---
 async def list_prompts() -> list[dict]:
-    """
-    Fetches all non-deleted prompts and ensures rating fields
-    are present before returning.
-    """
     prompts_list = []
-    # Filter for non-deleted prompts
     query = db.collection(PROMPTS_COLLECTION).where(filter=FieldFilter("deleted_at", "==", None))
     stream = query.stream()
     async for doc in stream:
@@ -98,7 +87,7 @@ async def list_prompts() -> list[dict]:
             prompt_data = doc.to_dict()
             prompt_data["id"] = doc.id
             
-            # --- DEFENSIVE FIX: Ensure rating fields always exist, defaulting to 0 ---
+            # Defensive check to ensure rating fields always exist.
             if "average_rating" not in prompt_data:
                 prompt_data["average_rating"] = 0.0
             if "rating_count" not in prompt_data:
@@ -106,11 +95,9 @@ async def list_prompts() -> list[dict]:
                 
             prompts_list.append(_serialize_datetimes(prompt_data))
         except Exception as e:
-            # Logs a warning and skips the malformed document
             logging.warning(f"--- WARNING: Skipping malformed document {doc.id} in 'prompts': {e}")
     return prompts_list
 
-# --- All other functions remain exactly the same as provided ---
 async def get_prompt_by_id(prompt_id: str) -> dict | None:
     doc_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id)
     doc = await doc_ref.get()

@@ -17,7 +17,6 @@ class PromptVersion(PromptVersionBase):
     version_number: int
     created_at: datetime
     commit_message: Optional[str] = None
-    # FIX: Explicitly serialize datetime to prevent environment-specific errors.
     model_config = ConfigDict(
         from_attributes=True,
         json_encoders={datetime: lambda v: v.isoformat()}
@@ -36,8 +35,11 @@ class Prompt(PromptBase):
     created_at: datetime
     latest_version: int
     
-    # FIX: This explicitly tells Pydantic how to format datetimes into strings,
-    # guaranteeing valid JSON and fixing the jq parse error in any environment.
+    # --- THE ONLY FIX NEEDED ---
+    average_rating: Optional[float] = 0.0
+    rating_count: int = 0
+    # -------------------------
+
     model_config = ConfigDict(
         from_attributes=True,
         json_encoders={
@@ -48,6 +50,8 @@ class Prompt(PromptBase):
 class PromptUpdate(BaseModel):
     name: Optional[str] = None
     task_description: Optional[str] = None
+    # Add is_archived to be consistent with other parts of the app
+    is_archived: Optional[bool] = None
 
 # --- Execution Schemas ---
 class PromptExecution(BaseModel):
@@ -61,7 +65,6 @@ class PromptExecution(BaseModel):
     latency_ms: int
     cost: float
     rating: Optional[int] = Field(None, ge=1, le=5)
-    # FIX: Explicitly serialize datetime to prevent environment-specific errors.
     model_config = ConfigDict(
         from_attributes=True,
         json_encoders={datetime: lambda v: v.isoformat()}
@@ -69,7 +72,6 @@ class PromptExecution(BaseModel):
 
 class PromptExecuteRequest(BaseModel):
     prompt_text: str = Field(..., example="Explain quantum computing in simple terms.")
-    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     model: str = Field(..., example="gemini-2.5-flash-lite")
     variables: Dict[str, Any] = Field({}, description="Key-value pairs for variables.")
 
@@ -159,7 +161,6 @@ class PromptTemplate(PromptTemplateBase):
     id: str
     created_at: datetime
     version: int = 1
-    # FIX: Explicitly serialize datetime to prevent environment-specific errors.
     model_config = ConfigDict(
         from_attributes=True,
         json_encoders={datetime: lambda v: v.isoformat()}
@@ -180,7 +181,6 @@ class PromptComposeResponse(BaseModel):
 # --- Sandbox & Benchmark Schemas ---
 class BenchmarkRequest(BaseModel):
     prompt_text: str = Field(..., example="Write a short story about a robot who discovers music.")
-    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     models: List[str] = Field(..., example=["gemini-2.5-flash-lite", "gpt-4o-mini"])
 
 class BenchmarkResult(BaseModel):
@@ -200,7 +200,6 @@ class SandboxPromptInput(BaseModel):
 class SandboxRequest(BaseModel):
     prompts: List[SandboxPromptInput]
     input_text: str
-    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     model: str = Field(..., example="gemini-2.5-flash-lite")
 
 class SandboxResult(BaseModel):
@@ -225,7 +224,6 @@ class RecommendResponse(BaseModel):
 
 # --- Metrics & Analytics Schemas ---
 class CostCalculationRequest(BaseModel):
-    # FIX: Ensure model name example is the explicit 'gemini-2.5-flash-lite'.
     model_name: str = Field(..., example="gemini-2.5-flash-lite")
     input_token_count: int = Field(..., example=1000)
     output_token_count: int = Field(..., example=500)
@@ -250,7 +248,6 @@ class RecentActivity(BaseModel):
     version: int
     commit_message: str
     created_at: datetime
-    # FIX: Explicitly serialize datetime while preserving existing config.
     model_config = ConfigDict(
         populate_by_name=True,
         json_encoders={datetime: lambda v: v.isoformat()}
