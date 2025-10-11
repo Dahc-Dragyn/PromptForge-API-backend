@@ -1755,3 +1755,133 @@
 2025-10-10 10:56:14,792 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=155.85
 2025-10-10 10:58:28,471 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.10
 2025-10-10 10:58:28,476 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.01
+2025-10-10 11:06:06,731 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:06:08,610 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:07:21,700 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:10:13,886 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.72
+2025-10-10 11:10:13,892 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.15
+2025-10-10 11:20:16,149 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:20:18,238 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.57
+2025-10-10 11:20:18,244 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.04
+2025-10-10 11:20:25,144 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.06
+2025-10-10 11:20:25,962 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=599.36
+2025-10-10 11:20:26,111 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=143.77
+2025-10-10 11:20:26,237 | INFO | method=GET path='/api/v1/prompts/c19Rks09zD9M5u3P2bji' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=120.62
+2025-10-10 11:20:26,461 | INFO | method=PATCH path='/api/v1/prompts/c19Rks09zD9M5u3P2bji' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=217.86
+2025-10-10 11:20:26,660 | INFO | method=POST path='/api/v1/prompts/c19Rks09zD9M5u3P2bji/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=191.98
+2025-10-10 11:20:26,858 | INFO | method=GET path='/api/v1/prompts/c19Rks09zD9M5u3P2bji/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=190.64
+2025-10-10 11:20:27,736 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=873.86
+2025-10-10 11:20:28,481 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=737.79
+2025-10-10 11:20:29,077 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=587.11
+2025-10-10 11:20:29,151 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=65.36
+2025-10-10 11:20:29,275 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=116.88
+2025-10-10 11:20:29,289 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.41
+2025-10-10 11:20:30,703 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1403.98
+2025-10-10 11:20:31,208 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-10-10 11:20:31,209 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=497.25
+2025-10-10 11:20:31,215 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.47
+2025-10-10 11:20:31,621 | INFO | method=DELETE path='/api/v1/prompts/c19Rks09zD9M5u3P2bji' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=127.95
+2025-10-10 11:20:31,741 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=114.21
+2025-10-10 11:20:31,929 | INFO | method=DELETE path='/api/v1/templates/M0PDkIYdajeVsyUIphHO' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=180.98
+2025-10-10 11:20:32,056 | INFO | method=DELETE path='/api/v1/templates/YYxeW5JmmyngCaj5Lnpp' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=120.02
+2025-10-10 11:23:50,189 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:23:56,317 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.39
+2025-10-10 11:23:57,160 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=625.90
+2025-10-10 11:23:57,315 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=149.24
+2025-10-10 11:23:57,518 | INFO | method=GET path='/api/v1/prompts/UejjUKrshd6sj64ZJp8t' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=197.24
+2025-10-10 11:23:57,768 | INFO | method=PATCH path='/api/v1/prompts/UejjUKrshd6sj64ZJp8t' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=243.49
+2025-10-10 11:23:57,990 | INFO | method=POST path='/api/v1/prompts/UejjUKrshd6sj64ZJp8t/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=214.64
+2025-10-10 11:23:58,157 | INFO | method=GET path='/api/v1/prompts/UejjUKrshd6sj64ZJp8t/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=162.79
+2025-10-10 11:23:58,986 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=820.17
+2025-10-10 11:23:59,800 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=805.88
+2025-10-10 11:24:00,344 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=535.07
+2025-10-10 11:24:00,431 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=77.99
+2025-10-10 11:24:00,567 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=127.28
+2025-10-10 11:24:00,580 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.93
+2025-10-10 11:24:01,541 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=953.72
+2025-10-10 11:24:02,122 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-10-10 11:24:02,123 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=573.91
+2025-10-10 11:24:02,133 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.23
+2025-10-10 11:24:02,502 | INFO | method=DELETE path='/api/v1/prompts/UejjUKrshd6sj64ZJp8t' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.79
+2025-10-10 11:24:02,616 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=108.29
+2025-10-10 11:24:02,750 | INFO | method=DELETE path='/api/v1/templates/vhQIksoYPoRmTKGOcqIC' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=127.36
+2025-10-10 11:24:02,878 | INFO | method=DELETE path='/api/v1/templates/xcY1hGm43ifnTxDSeMH8' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=120.24
+2025-10-10 11:24:07,119 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.18
+2025-10-10 11:24:07,125 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.91
+2025-10-10 11:30:11,397 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:30:22,859 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:30:24,764 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:30:25,638 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.39
+2025-10-10 11:30:25,643 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.04
+2025-10-10 11:30:27,389 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2.47
+2025-10-10 11:30:28,212 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=581.86
+2025-10-10 11:30:28,346 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=129.75
+2025-10-10 11:30:28,461 | INFO | method=GET path='/api/v1/prompts/vHfVijcmqiYZOXYvy1mx' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=109.85
+2025-10-10 11:30:28,667 | INFO | method=PATCH path='/api/v1/prompts/vHfVijcmqiYZOXYvy1mx' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=200.59
+2025-10-10 11:30:28,861 | INFO | method=POST path='/api/v1/prompts/vHfVijcmqiYZOXYvy1mx/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=186.11
+2025-10-10 11:30:28,995 | INFO | method=GET path='/api/v1/prompts/vHfVijcmqiYZOXYvy1mx/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=127.04
+2025-10-10 11:30:29,866 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=861.89
+2025-10-10 11:30:30,692 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=817.72
+2025-10-10 11:30:31,263 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=562.45
+2025-10-10 11:30:31,341 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=70.00
+2025-10-10 11:30:31,463 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=113.10
+2025-10-10 11:30:31,478 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.37
+2025-10-10 11:30:32,723 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1237.22
+2025-10-10 11:30:33,260 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-10-10 11:30:33,261 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=530.22
+2025-10-10 11:30:33,270 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.26
+2025-10-10 11:30:33,630 | INFO | method=DELETE path='/api/v1/prompts/vHfVijcmqiYZOXYvy1mx' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=94.40
+2025-10-10 11:30:33,757 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=121.04
+2025-10-10 11:30:33,853 | INFO | method=DELETE path='/api/v1/templates/3mGUPMgDsrnWqjHjRjjx' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=87.07
+2025-10-10 11:30:33,959 | INFO | method=DELETE path='/api/v1/templates/Qws8AwPFfQY5FcQoMnVN' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=97.78
+2025-10-10 11:32:23,344 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:32:25,247 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:32:27,194 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:32:29,104 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:32:30,514 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=2.96
+2025-10-10 11:32:31,283 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=558.03
+2025-10-10 11:32:31,387 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=96.53
+2025-10-10 11:32:31,489 | INFO | method=GET path='/api/v1/prompts/t1mD507IyJoLZ3MpmFcx' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=96.17
+2025-10-10 11:32:31,697 | INFO | method=PATCH path='/api/v1/prompts/t1mD507IyJoLZ3MpmFcx' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=200.35
+2025-10-10 11:32:31,889 | INFO | method=POST path='/api/v1/prompts/t1mD507IyJoLZ3MpmFcx/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=183.91
+2025-10-10 11:32:32,010 | INFO | method=GET path='/api/v1/prompts/t1mD507IyJoLZ3MpmFcx/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=112.58
+2025-10-10 11:32:32,975 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=956.33
+2025-10-10 11:32:33,761 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=776.30
+2025-10-10 11:32:34,318 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=548.70
+2025-10-10 11:32:34,379 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=52.50
+2025-10-10 11:32:34,480 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=93.02
+2025-10-10 11:32:34,493 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=3.67
+2025-10-10 11:32:35,589 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1088.22
+2025-10-10 11:32:36,052 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-10-10 11:32:36,053 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=455.67
+2025-10-10 11:32:36,056 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.36
+2025-10-10 11:32:36,408 | INFO | method=DELETE path='/api/v1/prompts/t1mD507IyJoLZ3MpmFcx' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=89.33
+2025-10-10 11:32:36,508 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=94.87
+2025-10-10 11:32:36,608 | INFO | method=DELETE path='/api/v1/templates/DFzJbQtUR1k6FEvFCdOB' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=91.25
+2025-10-10 11:32:36,713 | INFO | method=DELETE path='/api/v1/templates/NzRsHON8umuY7nQ1hjsH' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=97.58
+2025-10-10 11:32:38,232 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.03
+2025-10-10 11:32:38,237 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=0.96
+2025-10-10 11:38:41,396 | INFO | Firebase Admin SDK initialized successfully.
+2025-10-10 11:38:42,848 | INFO | method=GET path='/api/v1/prompts/' status_code=401 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.84
+2025-10-10 11:38:42,854 | INFO | method=GET path='/api/v1/metrics/activity/recent' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.13
+2025-10-10 11:38:45,370 | INFO | method=GET path='/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.67
+2025-10-10 11:38:46,208 | INFO | method=POST path='/api/v1/prompts/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=614.04
+2025-10-10 11:38:46,321 | INFO | method=GET path='/api/v1/prompts/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=108.41
+2025-10-10 11:38:46,429 | INFO | method=GET path='/api/v1/prompts/VyT7eWehGCwUFIxI72R7' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=102.87
+2025-10-10 11:38:46,642 | INFO | method=PATCH path='/api/v1/prompts/VyT7eWehGCwUFIxI72R7' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=206.12
+2025-10-10 11:38:46,844 | INFO | method=POST path='/api/v1/prompts/VyT7eWehGCwUFIxI72R7/versions' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=194.20
+2025-10-10 11:38:46,961 | INFO | method=GET path='/api/v1/prompts/VyT7eWehGCwUFIxI72R7/versions' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=109.03
+2025-10-10 11:38:47,902 | INFO | method=POST path='/api/v1/prompts/execute' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=932.05
+2025-10-10 11:38:48,729 | INFO | method=POST path='/api/v1/prompts/diagnose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=818.25
+2025-10-10 11:38:49,377 | INFO | method=POST path='/api/v1/prompts/breakdown' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=639.51
+2025-10-10 11:38:49,451 | INFO | method=POST path='/api/v1/templates/' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=64.39
+2025-10-10 11:38:49,585 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=125.08
+2025-10-10 11:38:49,599 | INFO | method=POST path='/api/v1/sandbox/compose' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=4.41
+2025-10-10 11:38:51,280 | INFO | method=POST path='/api/v1/sandbox/generate-template' status_code=201 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1672.16
+2025-10-10 11:38:51,789 | ERROR | Error recommending templates: module 'app.services.firestore_service' has no attribute 'list_templates_by_tags'
+2025-10-10 11:38:51,791 | INFO | method=POST path='/api/v1/sandbox/recommend-templates' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=502.72
+2025-10-10 11:38:51,801 | INFO | method=GET path='/api/v1/metrics/prompts/all' status_code=404 user_id='anonymous' client_ip='127.0.0.1' latency_ms=1.04
+2025-10-10 11:38:52,169 | INFO | method=DELETE path='/api/v1/prompts/VyT7eWehGCwUFIxI72R7' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=87.84
+2025-10-10 11:38:52,296 | INFO | method=GET path='/api/v1/templates/' status_code=200 user_id='anonymous' client_ip='127.0.0.1' latency_ms=122.01
+2025-10-10 11:38:52,400 | INFO | method=DELETE path='/api/v1/templates/6ZPfzIyycQ72G9Tkqbd9' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=95.24
+2025-10-10 11:38:52,517 | INFO | method=DELETE path='/api/v1/templates/PmOQPoOLVwc5tVWGvDoA' status_code=204 user_id='anonymous' client_ip='127.0.0.1' latency_ms=109.12

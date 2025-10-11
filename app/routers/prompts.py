@@ -1,8 +1,10 @@
 # app/routers/prompts.py
 from fastapi import APIRouter, Depends, HTTPException, Response
 from typing import List, Dict
+from google.cloud.firestore_v1.async_client import AsyncClient
 
 # Your own project's imports
+from app.core.db import get_firestore_client
 from app.services import firestore_service, llm_service, security_service
 from app.schemas.prompt import (
     Prompt, PromptCreate, PromptUpdate, PromptVersion, PromptVersionCreate,
@@ -29,12 +31,10 @@ async def create_new_prompt(
     """(SECURE) Create a new prompt for the authenticated user."""
     return await firestore_service.create_prompt(prompt, user=current_user)
 
-# V-- THIS IS THE LINE THAT FIXES THE CRASH --V
 @router.get("/", response_model=List[Prompt])
 async def get_all_prompts_for_user(
     current_user: Dict = get_current_user_dependency
 ):
-# ^-- THE FIX IS response_model=List[Prompt] --^
     """(SECURE) Retrieve all prompts owned by the authenticated user."""
     user_id = current_user["uid"]
     return await firestore_service.list_prompts_for_user(user_id)
@@ -79,21 +79,30 @@ async def get_prompt_versions(
     """(SECURE) List all versions of a specific prompt. Requires ownership."""
     return await firestore_service.list_prompt_versions(prompt_id)
 
+
+# V-- THIS IS THE CORRECTED FUNCTION --V
 @router.post("/{prompt_id}/versions", response_model=PromptVersion, status_code=201, tags=["Versioning"])
 async def create_new_version_for_prompt(
     prompt_id: str,
     version_data: PromptVersionCreate,
+    db: AsyncClient = Depends(get_firestore_client), # Added dependency to get DB client
     current_user: Dict = prompt_owner_or_admin_dependency
 ):
     """(SECURE) Create a new version for a prompt. Requires ownership."""
     try:
-        return await firestore_service.create_new_prompt_version(
-            prompt_id, version_data, user=current_user
+        # Create a transaction and pass it to the service function
+        transaction = db.transaction()
+        new_version = await firestore_service.create_new_prompt_version(
+            transaction, prompt_id, version_data, user=current_user
         )
+        return new_version
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
+        # Re-raise with the actual error for better debugging
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+# ^-- END OF THE CORRECTION --^
+
 
 # === LLM Endpoints (Public) ===
 

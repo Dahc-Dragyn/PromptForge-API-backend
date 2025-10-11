@@ -22,7 +22,7 @@ initialize_firebase()
 app = FastAPI(
     title="PromptForge API",
     description="API for managing and optimizing LLM prompts.",
-    version="1.0.1", # Version bump for the fix
+    version="1.0.1",
 )
 
 # --- Middleware ---
@@ -35,9 +35,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# FIX: Use a single APIRouter for a simpler, more robust routing structure.
-# This avoids the complexity of mounting a sub-application.
+# --- API Router Configuration ---
+# A single router is used to prefix all routes with /api/v1.
 api_router = APIRouter()
+
+# Each of these lines registers a section of your API.
+# The `metrics.router` line is essential and fixes the 404 errors.
 api_router.include_router(prompts.router, prefix="/prompts")
 api_router.include_router(templates.router, prefix="/templates")
 api_router.include_router(sandbox.router, prefix="/sandbox")

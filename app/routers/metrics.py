@@ -24,7 +24,7 @@ async def get_starred_prompts_for_user(
     prompts_data = await firestore_service.list_starred_prompts_for_user(user_id)
     return [PromptSummary(**prompt) for prompt in prompts_data]
 
-# V-- **THIS IS THE CORRECTED, SECURE ENDPOINT** --V
+# V-- THIS IS THE CORRECTED, SECURE ENDPOINT --V
 @router.get("/activity/recent", response_model=List[RecentActivity])
 async def get_recent_user_activity(
     limit: int = 10,
