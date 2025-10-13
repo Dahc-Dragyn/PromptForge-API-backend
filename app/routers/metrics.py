@@ -1,13 +1,17 @@
-# app/routers/metrics.py
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Dict, Any
+from google.cloud.firestore_v1.async_client import AsyncClient
+from app.core.db import get_firestore_client
+
+
 from app.services import firestore_service, security_service
 from app.schemas.prompt import PromptSummary, RecentActivity, RatingCreate
 
+
 router = APIRouter(
-    prefix="/metrics",
     tags=["Metrics"],
 )
+
 
 @router.get("/prompts/all", response_model=List[PromptSummary])
 async def get_all_prompts_metrics():
@@ -24,7 +28,6 @@ async def get_starred_prompts_for_user(
     prompts_data = await firestore_service.list_starred_prompts_for_user(user_id)
     return [PromptSummary(**prompt) for prompt in prompts_data]
 
-# V-- THIS IS THE CORRECTED, SECURE ENDPOINT --V
 @router.get("/activity/recent", response_model=List[RecentActivity])
 async def get_recent_user_activity(
     limit: int = 10,
@@ -33,17 +36,24 @@ async def get_recent_user_activity(
     """(SECURE) Retrieves recent activity for the currently authenticated user."""
     user_id = current_user["uid"]
     return await firestore_service.get_recent_activity_for_user(user_id, limit)
-# ^-- END OF CORRECTION --^
 
+# V-- THIS IS PART 2 OF THE FIX --V
+# The original function was failing because it called a transactional
+# database function without creating and passing in a transaction.
+# The corrected code adds a dependency to get the database client,
+# creates a transaction, and correctly passes it to the service layer.
 @router.post("/rate", status_code=201)
 async def rate_prompt_version(
     rating_data: RatingCreate,
+    db: AsyncClient = Depends(get_firestore_client),
     current_user: Dict = Depends(security_service.get_current_user)
 ):
     """(SECURE) Creates or updates a rating for a specific prompt version."""
     user_id = current_user["uid"]
     try:
+        transaction = db.transaction()
         await firestore_service.create_or_update_rating(
+            transaction, # <-- The missing transaction is now passed
             prompt_id=rating_data.prompt_id,
             version_number=rating_data.version_number,
             rating=rating_data.rating,
@@ -54,3 +64,4 @@ async def rate_prompt_version(
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+# ^-- END OF FIX --^

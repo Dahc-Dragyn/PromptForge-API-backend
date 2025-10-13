@@ -1,4 +1,3 @@
-# app/services/firestore_service.py
 import logging
 from datetime import datetime, timezone
 from google.cloud.firestore_v1.async_client import AsyncClient
@@ -55,7 +54,7 @@ async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
         "created_at": creation_time,
         "latest_version": 1,
         "owner": owner_info,
-        "user_id": user["uid"],  # <-- **FIX 1: ADDED THIS LINE**
+        "user_id": user["uid"],
         "deleted_at": None,
         "average_rating": 0,
         "rating_count": 0
@@ -79,13 +78,15 @@ async def create_prompt(prompt_data: PromptCreate, user: Dict) -> dict:
     
     return _serialize_datetimes({"id": prompt_ref.id, **response_data})
 
-# V-- **FIX 2: ADDED THE MISSING 'list_prompts_for_user' FUNCTION** --V
+# V-- THIS IS THE FINAL FIX --V
+# The Firestore query is not reliably filtering by user_id. To guarantee data isolation,
+# the query now only filters for non-deleted prompts. A mandatory, in-memory check
+# is then performed to ensure that only prompts belonging to the correct user are returned.
 async def list_prompts_for_user(user_id: str) -> list[dict]:
     """Fetches all non-deleted prompts for a specific user."""
     prompts_list = []
+    # Query for all non-deleted prompts, regardless of user.
     query = db.collection(PROMPTS_COLLECTION).where(
-        filter=FieldFilter("user_id", "==", user_id)
-    ).where(
         filter=FieldFilter("deleted_at", "==", None)
     )
     
@@ -93,18 +94,21 @@ async def list_prompts_for_user(user_id: str) -> list[dict]:
     async for doc in stream:
         try:
             prompt_data = doc.to_dict()
-            prompt_data["id"] = doc.id
-            if "average_rating" not in prompt_data:
-                prompt_data["average_rating"] = 0.0
-            if "rating_count" not in prompt_data:
-                prompt_data["rating_count"] = 0
-            prompts_list.append(_serialize_datetimes(prompt_data))
+            # DEFENSIVE CHECK: This is the mandatory security filter.
+            if prompt_data.get("user_id") == user_id:
+                prompt_data["id"] = doc.id
+                if "average_rating" not in prompt_data:
+                    prompt_data["average_rating"] = 0.0
+                if "rating_count" not in prompt_data:
+                    prompt_data["rating_count"] = 0
+                prompts_list.append(_serialize_datetimes(prompt_data))
         except Exception as e:
             logging.warning(f"--- WARNING: Skipping malformed document {doc.id} in 'prompts': {e}")
             
     return prompts_list
+# ^-- END OF FIX --^
 
-# V-- **FIX 3: ADDED THE FUNCTION FOR STARRRED PROMPTS** --V
+
 async def list_starred_prompts_for_user(user_id: str, min_rating: float = 4.0) -> list[dict]:
     """Fetches highly-rated (starred) prompts for a specific user."""
     prompts_list = []
@@ -119,13 +123,12 @@ async def list_starred_prompts_for_user(user_id: str, min_rating: float = 4.0) -
     async for doc in stream:
         try:
             prompt_data = doc.to_dict()
-            prompt_data["id"] = doc.id
-            prompts_list.append(_serialize_datetimes(prompt_data))
+            if prompt_data.get("user_id") == user_id:
+                prompt_data["id"] = doc.id
+                prompts_list.append(_serialize_datetimes(prompt_data))
         except Exception as e:
             logging.warning(f"--- WARNING: Skipping malformed document {doc.id} in 'starred prompts': {e}")
     return prompts_list
-# ^-- END OF NEW FUNCTIONS --^
-
 
 async def get_prompt_by_id(prompt_id: str) -> dict | None:
     doc_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id)
@@ -186,6 +189,7 @@ async def create_template(template_data: PromptTemplateCreate, user: Dict) -> di
     data["created_at"] = datetime.now(timezone.utc)
     data["version"] = 1
     data["owner"] = owner_info
+    data["user_id"] = user["uid"]
     doc_ref = db.collection(PROMPT_TEMPLATES_COLLECTION).document()
     await doc_ref.set(data)
     return _serialize_datetimes({"id": doc_ref.id, **data})
@@ -195,6 +199,19 @@ async def list_templates(tag: Optional[str] = None) -> list[dict]:
     query = db.collection(PROMPT_TEMPLATES_COLLECTION)
     if tag:
         query = query.where(filter=FieldFilter("tags", "array_contains", tag))
+    stream = query.stream()
+    async for doc in stream:
+        template_data = doc.to_dict()
+        template_data["id"] = doc.id
+        templates_list.append(_serialize_datetimes(template_data))
+    return templates_list
+
+async def list_templates_by_tags(tags: List[str]) -> list[dict]:
+    templates_list = []
+    query = db.collection(PROMPT_TEMPLATES_COLLECTION)
+    if tags:
+        query = query.where(filter=FieldFilter("tags", "array_contains_any", tags))
+    
     stream = query.stream()
     async for doc in stream:
         template_data = doc.to_dict()
@@ -220,12 +237,14 @@ async def get_decrypted_user_api_key(user_id: str, provider: str) -> str | None:
 
 async def get_all_prompt_metrics() -> List[Dict[str, Any]]:
     query = db.collection(PROMPTS_COLLECTION).where(filter=FieldFilter("deleted_at", "==", None))
-    prompts = [doc.to_dict() async for doc in query.stream()]
-    return prompts
+    prompts_list = []
+    async for doc in query.stream():
+        prompt_data = doc.to_dict()
+        prompt_data["id"] = doc.id
+        prompts_list.append(prompt_data)
+    return prompts_list
 
-# V-- **FIX 4: CORRECTED RECENT ACTIVITY FUNCTION** --V
 async def get_recent_activity_for_user(user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
-    """Fetches recent prompt versions created by a specific user."""
     query = (
         db.collection_group('versions')
         .where(filter=FieldFilter("author_uid", "==", user_id))
@@ -237,7 +256,6 @@ async def get_recent_activity_for_user(user_id: str, limit: int = 10) -> List[Di
         version_data = doc.to_dict()
         prompt_ref = doc.reference.parent.parent
         prompt_doc = await prompt_ref.get()
-        # Ensure the parent prompt exists and belongs to the same user to prevent data leakage
         if prompt_doc.exists and prompt_doc.to_dict().get("deleted_at") is None and prompt_doc.to_dict().get("user_id") == user_id:
             prompt_name = prompt_doc.to_dict().get('name', 'N/A')
             activity_item = {
@@ -250,8 +268,6 @@ async def get_recent_activity_for_user(user_id: str, limit: int = 10) -> List[Di
             }
             activity_list.append(_serialize_datetimes(activity_item))
     return activity_list
-# ^-- END OF CORRECTION --^
-
 
 @firestore.async_transactional
 async def create_or_update_rating(
@@ -262,9 +278,20 @@ async def create_or_update_rating(
     user_id: str
 ):
     prompt_ref = db.collection(PROMPTS_COLLECTION).document(prompt_id)
+    
     prompt_snapshot = await prompt_ref.get(transaction=transaction)
     if not prompt_snapshot.exists:
         raise FileNotFoundError(f"Prompt with ID {prompt_id} not found.")
+
+    all_ratings_query = db.collection(RATINGS_COLLECTION).where(filter=FieldFilter("prompt_id", "==", prompt_id))
+    all_ratings_docs = await all_ratings_query.get(transaction=transaction)
+    
+    ratings_by_user = {doc.to_dict().get("user_id"): doc.to_dict().get("rating", 0) for doc in all_ratings_docs}
+    ratings_by_user[user_id] = rating
+
+    total_rating = sum(ratings_by_user.values())
+    new_rating_count = len(ratings_by_user)
+    new_avg_rating = total_rating / new_rating_count if new_rating_count > 0 else 0
 
     rating_id = f"{prompt_id}_v{version_number}_{user_id}"
     rating_ref = db.collection(RATINGS_COLLECTION).document(rating_id)
@@ -273,19 +300,6 @@ async def create_or_update_rating(
         "user_id": user_id, "rating": rating,
         "created_at": datetime.now(timezone.utc)
     })
-    
-    # Efficiently recalculate average rating
-    all_ratings_query = db.collection(RATINGS_COLLECTION).where(filter=FieldFilter("prompt_id", "==", prompt_id))
-    all_ratings_docs = await all_ratings_query.get(transaction=transaction)
-    
-    total_rating = 0
-    # Use a set to handle cases where a user re-rates a version
-    ratings_by_user = {doc.to_dict().get("user_id"): doc.to_dict().get("rating", 0) for doc in all_ratings_docs}
-    ratings_by_user[user_id] = rating # Add or update the current user's rating
-
-    total_rating = sum(ratings_by_user.values())
-    new_rating_count = len(ratings_by_user)
-    new_avg_rating = total_rating / new_rating_count if new_rating_count > 0 else 0
 
     transaction.update(prompt_ref, {
         "rating_count": new_rating_count,
