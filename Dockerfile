@@ -1,33 +1,20 @@
-# --- Stage 1: Build the dependencies ---
-FROM python:3.12-slim AS builder
-
-WORKDIR /app
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Copy the requirements file into the container
-COPY requirements.txt .
-
-# Install dependencies
-RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
-
-
-# --- Stage 2: Create the final, lean image ---
+# Use an official Python runtime as a parent image
 FROM python:3.12-slim
 
-WORKDIR /app
+# Set the working directory in the container
+WORKDIR /usr/src/app
 
-# Copy the pre-built dependencies from the 'builder' stage
-COPY --from=builder /app/wheels /wheels
-COPY --from=builder /app/requirements.txt .
-RUN pip install --no-cache /wheels/*
+# Copy the requirements file into the container
+COPY requirements.txt ./
 
-# Copy the application source code into the container
-COPY ./app ./app
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port the app runs on
-EXPOSE 8000
+# Generate a list of installed packages for debugging
+RUN pip list > /pip_list_container.txt
 
-# Define the command to run the application for production
+# Copy the rest of the application's code into the container
+COPY . .
+
+# Command to run the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
