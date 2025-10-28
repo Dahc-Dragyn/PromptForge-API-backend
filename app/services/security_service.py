@@ -47,6 +47,7 @@ class PromptOwnerOrAdmin:
         prompt_doc = await prompt_ref.get()
         if not prompt_doc.exists:
             raise HTTPException(status_code=404, detail="Prompt not found")
+        # This correctly checks the nested 'owner.uid' field for Prompts
         owner_uid = prompt_doc.to_dict().get("owner", {}).get("uid")
         if owner_uid != current_user["uid"]:
             raise HTTPException(status_code=403, detail="Not authorized to access this resource")
@@ -58,13 +59,19 @@ class TemplateOwnerOrAdmin:
         if current_user.get("admin", False):
             return current_user
         
-        # FIX: Use the correct Firestore collection name "prompt_templates".
+        # This collection name is correct.
         template_ref = db.collection("prompt_templates").document(template_id)
         template_doc = await template_ref.get()
 
         if not template_doc.exists:
             raise HTTPException(status_code=404, detail="Template not found")
-        owner_uid = template_doc.to_dict().get("owner", {}).get("uid")
+        
+        # --- FIX: CHECK THE CORRECT FIELD ---
+        # The bug was here. It was checking 'owner.uid' which is used for prompts.
+        # Templates use a top-level 'user_id' string field for ownership.
+        owner_uid = template_doc.to_dict().get("user_id") 
+        # --- END FIX ---
+
         if owner_uid != current_user["uid"]:
             raise HTTPException(status_code=403, detail="Not authorized to access this resource")
         return current_user

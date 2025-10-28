@@ -205,18 +205,32 @@ async def create_template(template_data: PromptTemplateCreate, user: Dict) -> di
     await doc_ref.set(data)
     return _serialize_datetimes({"id": doc_ref.id, **data})
 
-async def list_templates(tag: Optional[str] = None) -> list[dict]:
-    """Lists all available prompt templates, optionally filtered by a tag."""
+# --- FIX 1: SECURE list_templates ---
+# This function now requires a user_id and filters results in-memory.
+async def list_templates(user_id: str, tag: Optional[str] = None) -> list[dict]:
+    """(SECURE) Lists all prompt templates for a specific user, with mandatory security filter."""
     templates_list = []
+    
+    # Base query on the collection
     query = db.collection(PROMPT_TEMPLATES_COLLECTION)
+    
+    # Apply optional tag filter at the DB level if provided
     if tag:
         query = query.where(filter=FieldFilter("tags", "array_contains", tag))
+    
     stream = query.stream()
     async for doc in stream:
-        template_data = doc.to_dict()
-        template_data["id"] = doc.id
-        templates_list.append(_serialize_datetimes(template_data))
-    return templates_list # Extraneous 'return' removed
+        try:
+            template_data = doc.to_dict()
+            # CRITICAL SECURITY CHECK: In-memory filter for user ownership.
+            if template_data.get("user_id") == user_id:
+                template_data["id"] = doc.id
+                templates_list.append(_serialize_datetimes(template_data))
+        except Exception as e:
+            logging.warning(f"--- WARNING: Skipping malformed document {doc.id} in 'prompt_templates': {e}")
+            
+    return templates_list
+# --- END FIX 1 ---
 
 async def list_templates_by_tags(tags: List[str]) -> list[dict]:
     """Lists templates that have any of the specified tags."""
@@ -232,17 +246,55 @@ async def list_templates_by_tags(tags: List[str]) -> list[dict]:
         templates_list.append(_serialize_datetimes(template_data)) # Extraneous 'g' and extra indentation removed
     return templates_list
 
-# --- NEW FUNCTION TO FIX THE 500 ERROR ---
-async def get_template_by_id(template_id: str) -> dict | None:
-    """Fetches a single prompt template by its ID."""
+# --- FIX 2: SECURE get_template_by_id ---
+# This function now requires a user_id and returns None if the user does not own the template.
+async def get_template_by_id(template_id: str, user_id: str) -> dict | None:
+    """(SECURE) Fetches a single prompt template by ID, only if owned by the user."""
     doc_ref = db.collection(PROMPT_TEMPLATES_COLLECTION).document(template_id)
     doc = await doc_ref.get()
-    if doc.exists:
-        template_data = doc.to_dict()
-        template_data["id"] = doc.id
-        return _serialize_datetimes(template_data)
-    return None # Extraneous 'Boolean' removed
-# --- END NEW FUNCTION ---
+    
+    if not doc.exists:
+        return None # Template not found
+        
+    template_data = doc.to_dict()
+    
+    # CRITICAL SECURITY CHECK: Verify ownership.
+    if template_data.get("user_id") != user_id:
+        return None # User does not own this template. Return None to be handled by router.
+        
+    template_data["id"] = doc.id
+    return _serialize_datetimes(template_data)
+# --- END FIX 2 ---
+
+async def update_template_by_id(template_id: str, update_data: dict) -> dict | None:
+    """
+    Updates a template document.
+    Note: This function does NOT perform security checks.
+    It relies on the router's dependency (`TemplateOwnerOrAdmin`) to ensure
+    only authorized users can call it.
+    """
+    doc_ref = db.collection(PROMPT_TEMPLATES_COLLECTION).document(template_id)
+    doc = await doc_ref.get()
+    if not doc.exists:
+        return None
+    
+    if "version" in update_data:
+        # Increment version if it's part of the update, otherwise set to 1
+        current_version = doc.to_dict().get("version", 0)
+        update_data["version"] = current_version + 1
+    
+    if update_data:
+        await doc_ref.update(update_data)
+    
+    # Fetch the updated document to return it
+    updated_doc = await doc_ref.get()
+    if not updated_doc.exists:
+        return None # Should not happen, but good to be safe
+    
+    final_data = updated_doc.to_dict()
+    final_data["id"] = updated_doc.id
+    return _serialize_datetimes(final_data)
+
 
 async def delete_template_by_id(template_id: str):
     """Deletes a template document."""
