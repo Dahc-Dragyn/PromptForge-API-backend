@@ -89,5 +89,7 @@ def main():
     print(f"\n✅ Seeding complete. Successfully generated {success_count}/{len(TEMPLATES_TO_GENERATE)} templates.")
     print("Check your Firestore database to see the new templates!")
 
+#change    
+
 if __name__ == "__main__":
     main()
