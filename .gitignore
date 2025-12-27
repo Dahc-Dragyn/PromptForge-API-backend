@@ -1,4 +1,49 @@
-# .gitignore
-
+===================================================================
+Secrets and Environment Variables
+IMPORTANT: Never commit these files to a public repository!
+===================================================================
 .env
 service-account.json
+
+===================================================================
+Python Virtual Environment
+The .venv folder contains installed packages and should not be tracked.
+===================================================================
+.venv/
+venv/
+ENV/
+env/
+
+===================================================================
+Python Cache & Compiled Files
+These are generated automatically and should not be version controlled.
+===================================================================
+pycache/
+*.py[cod]
+*$py.class
+
+===================================================================
+IDE and Editor Specific Files
+Ignores user-specific workspace settings.
+===================================================================
+Visual Studio Code
+.vscode/
+
+PyCharm
+.idea/
+
+===================================================================
+Build & Distribution Artifacts
+These are generated when you package your application.
+===================================================================
+build/
+dist/
+*.egg-info/
+
+===================================================================
+Test & Coverage Reports
+===================================================================
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/

@@ -14,3 +14,7 @@ openai==1.101.0
 
 # --- Security ---
 cryptography==45.0.7
+
+# --- Security & Rate Limiting (NEW) ---
+redis==5.0.1
+slowapi==0.1.9
