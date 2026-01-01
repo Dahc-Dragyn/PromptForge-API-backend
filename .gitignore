@@ -1,49 +1,61 @@
-===================================================================
-Secrets and Environment Variables
-IMPORTANT: Never commit these files to a public repository!
-===================================================================
+# ===================================================================
+# Secrets and Environment Variables
+# IMPORTANT: Never commit these files to a public repository!
+# ===================================================================
 .env
+.env.local
+.env.*
 service-account.json
+# Block any JSON key files just in case
+*.json
+!package.json
+!tsconfig.json
+!firebase.json
 
-===================================================================
-Python Virtual Environment
-The .venv folder contains installed packages and should not be tracked.
-===================================================================
+# ===================================================================
+# Logs (Added based on your file list)
+# ===================================================================
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===================================================================
+# Python Virtual Environment
+# ===================================================================
 .venv/
 venv/
 ENV/
 env/
 
-===================================================================
-Python Cache & Compiled Files
-These are generated automatically and should not be version controlled.
-===================================================================
-pycache/
+# ===================================================================
+# Python Cache & Compiled Files
+# ===================================================================
+__pycache__/
 *.py[cod]
 *$py.class
 
-===================================================================
-IDE and Editor Specific Files
-Ignores user-specific workspace settings.
-===================================================================
-Visual Studio Code
+# ===================================================================
+# IDE and Editor Specific Files
+# ===================================================================
 .vscode/
-
-PyCharm
 .idea/
+*.swp
+.DS_Store
 
-===================================================================
-Build & Distribution Artifacts
-These are generated when you package your application.
-===================================================================
+# ===================================================================
+# Build & Distribution Artifacts
+# ===================================================================
 build/
 dist/
 *.egg-info/
 
-===================================================================
-Test & Coverage Reports
-===================================================================
+# ===================================================================
+# Test & Coverage Reports
+# ===================================================================
 .coverage
 .coverage.*
 .pytest_cache/
 htmlcov/
+EOF

@@ -5,12 +5,11 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
-from fastapi import FastAPI, APIRouter, Request, Response, status, Depends
+from fastapi import FastAPI, APIRouter, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from dotenv import load_dotenv
 
-# --- Security & Rate Limiting ---
+# --- New Security Imports ---
 from redis.asyncio import Redis
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -29,7 +28,7 @@ from app.core.db import initialize_firebase
 load_dotenv()
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis-service:6379")
 
-# Setup Logging
+# Setup Logging (Preserving your existing config)
 log_formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
 log_handler = RotatingFileHandler('api_requests.log', mode='a', maxBytes=5*1024*1024, backupCount=3)
 log_handler.setFormatter(log_formatter)
@@ -42,8 +41,7 @@ initialize_firebase()
 
 # --- SECURITY: Redis Connection ---
 try:
-    # Fail gracefully if Redis is not found (local testing)
-    cache = Redis.from_url(REDIS_URL, decode_responses=True, encoding="utf-8", socket_connect_timeout=1)
+    cache = Redis.from_url(REDIS_URL, decode_responses=True, encoding="utf-8")
     root_logger.info("Redis cache connection established for PromptForge.")
 except Exception as e:
     root_logger.error(f"Could not initialize Redis. Security features disabled. Error: {e}")
@@ -92,33 +90,32 @@ async def block_bad_bots(request: Request, call_next):
         )
     return await call_next(request)
 
-# --- LAYER 2: The "Velocity Trap" (Fail-Open Version) ---
+# --- LAYER 2: The "Velocity Trap" (Anti-Scraper) ---
 @app.middleware("http")
 async def velocity_trap(request: Request, call_next):
-    # If Redis failed to init, skip this check entirely
-    if not cache: 
-        return await call_next(request)
+    if not cache: return await call_next(request)
 
     client_ip = get_real_ip(request)
     
-    try:
-        # 1. Check Jail
-        is_banned = await cache.get(f"ban:{client_ip}")
-        if is_banned:
-            return Response(
-                content=json.dumps({"detail": "IP Banned for suspicious velocity. Try again in 1 hour."}), 
-                status_code=status.HTTP_403_FORBIDDEN,
-                media_type="application/json"
-            )
+    # Check Jail
+    is_banned = await cache.get(f"ban:{client_ip}")
+    if is_banned:
+        return Response(
+            content=json.dumps({"detail": "IP Banned for suspicious velocity. Try again in 1 hour."}), 
+            status_code=status.HTTP_403_FORBIDDEN,
+            media_type="application/json"
+        )
 
-        # 2. Check Velocity
-        current_time = int(time.time())
-        velocity_key = f"vel:{client_ip}:{current_time}"
-        
+    # Check Velocity (Requests per Second)
+    current_time = int(time.time())
+    velocity_key = f"vel:{client_ip}:{current_time}"
+    
+    try:
         request_count = await cache.incr(velocity_key)
         if request_count == 1:
             await cache.expire(velocity_key, 2)
             
+        # Limit: 15 requests per second (Higher than Bookfinder because LLMs are bursty)
         if request_count > 15:
             root_logger.error(f"VELOCITY BAN: {client_ip} hit {request_count} req/s")
             await cache.setex(f"ban:{client_ip}", 3600, "banned")
@@ -127,20 +124,14 @@ async def velocity_trap(request: Request, call_next):
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 media_type="application/json"
             )
-            
-    except Exception as e:
-        # FAIL OPEN: Don't crash if Redis vanishes
-        pass 
+    except Exception:
+        pass # Fail open if Redis hiccups
 
     return await call_next(request)
 
 # --------------------------------------------------------------------
 # 4. Standard Middleware & Routers
 # --------------------------------------------------------------------
-
-# --- NETWORK FIX: Trust Ngrok/Caddy Headers ---
-# This fixes the "Mixed Content" redirect loop.
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(
@@ -158,7 +149,6 @@ api_router.include_router(sandbox.router, prefix="/sandbox")
 api_router.include_router(metrics.router, prefix="/metrics")
 api_router.include_router(execution.router, prefix="/users")
 
-# Mount API at /api/v1 (No Mock Auth here!)
 app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/", tags=["Health Check"])

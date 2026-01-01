@@ -5,9 +5,9 @@ import sys
 import time
 import os
 
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = "http://127.0.0.1:8000/api/v1"
 HEADERS = {"Content-Type": "application/json", "accept": "application/json"}
-DEFAULT_MODEL = "gemini-1.5-pro-latest"
+DEFAULT_MODEL = "gemini-2.5-flash-lite-preview-09-2025"
 
 def run_test(name, method, url, payload=None, expected_status=200):
     """Helper function to run a test and print the results."""
